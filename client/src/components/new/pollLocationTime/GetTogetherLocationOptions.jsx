@@ -35,6 +35,7 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
       for (const { place_id } of data) {
         try {
           const details = await getDetails({ placeId: place_id });
+
           const addressComponents = details.address_components;
 
           let street = '';
@@ -64,6 +65,11 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
             name: details.name,
             street,
             cityStateZip: `${city}, ${state} ${zip}`.trim(),
+            website: details.website || null,
+            phoneNumber: details.international_phone_number || null,
+            rating: details.rating || null,
+            ratingsCount: details.user_ratings_total || 0,
+            businessHours: details.opening_hours?.weekday_text || null,
           };
         } catch (error) {
           console.error('Error fetching suggestion details:', error);
@@ -155,6 +161,18 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
       }
       setAddress(selectedLocation.address);
 
+      // FIX THIS TO BE THE LOCATION OBJECT
+      onLocationSubmit({
+        locationName: selectedLocation.name,
+        address: selectedLocation.address,
+        street: selectedLocation.street,
+        cityStateZip: selectedLocation.cityStateZip,
+        latitude: selectedLocation.lat,
+        longitude: selectedLocation.lng,
+        googlePlaceId: placeId,
+        source: 'google',
+      });
+
       console.log('Place Name:', selectedLocation.name);
       console.log('Street Address:', selectedLocation.street);
       console.log('City, State, ZIP:', selectedLocation.cityStateZip);
@@ -173,7 +191,7 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
           value={locationValue}
           onChange={handleLocationChange}
           placeholder="Ex: Dave's Bar"
-          className="w-full border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </form>
 

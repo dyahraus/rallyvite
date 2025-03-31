@@ -1,0 +1,27 @@
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: ../auth/Dockerfile
+    ports:
+      - '3001:3001'
+    # environment:
+    #   - NODE_ENV=production
+
+  # client:
+  #   build:
+  #     context: .
+  #     dockerfile: ../client/Dockerfile
+  #   ports:
+  #     - '3000:3000'
+  #   # environment:
+  #   #   - NODE_ENV=production
+
+  # events:
+  #   build:
+  #     context: .
+  #     dockerfile: ../events/Dockerfile
+  #   ports:
+  #     - '5000:5000'
+  #   # environment:
+  #   #   - NODE_ENV=production

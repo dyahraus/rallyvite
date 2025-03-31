@@ -1,7 +1,5 @@
 import { Pool } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import { env } from './env'; // adjust the path if needed
 
 const pool = new Pool({
   user: process.env.PG_USER,
@@ -12,11 +10,11 @@ const pool = new Pool({
 });
 
 pool.on('connect', () => {
-  console.log('Connected to PostgreSQL database!');
+  console.log('✅ Connected to PostgreSQL auth database!');
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+  console.error('❌ Unexpected error on idle PostgreSQL client', err);
   process.exit(-1);
 });
 

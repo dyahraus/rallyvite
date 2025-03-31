@@ -32,6 +32,17 @@ export const createPlace = async (
   return result.rows[0];
 };
 
+export const findPlaceByNameAndAddress = async (
+  name: string,
+  address1: string
+) => {
+  const result = await pool.query<Place>(
+    `SELECT * FROM places WHERE name = $1 AND address1 = $2 LIMIT 1`,
+    [name, address1]
+  );
+  return result.rows[0] || null;
+};
+
 export const getAllPlaces = async () => {
   const result = await pool.query<Place>('SELECT * FROM places');
   return result.rows;

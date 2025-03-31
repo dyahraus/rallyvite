@@ -1,77 +1,98 @@
 import express, { Request, Response } from 'express';
-import { createUser, getUserByEmail } from '../services/userService';
-import pool from '../services/db';
+import {
+  createUser,
+  getUserByEmail,
+  getUserByPhone,
+  normalizePhoneNumber,
+} from '../services/userService';
+import pool from '../config/db';
 import { User } from '../models/user';
+import { BadRequestError } from '../errors/bad-request-error';
+import jwt from 'jsonwebtoken';
+import { createSession } from '../services/sessionService';
+import { createMagicLinkToken } from '../services/magicLinkService';
 
 const router = express.Router();
 
 router.post('/api/users/createuser', async (req: Request, res: Response) => {
-  // Check if user has a cookie (is logged in)
-  // Create event with the user
-  if (currentUser) {
+  try {
+    const { email, phone, name } = req.body;
+
+    const normPhone = normalizePhoneNumber(phone);
+
+    if (!name) {
+      throw new BadRequestError('Must have a name to be associated with user');
+    }
+
+    let user: User;
+
+    if (email || normPhone) {
+      if (email) {
+        const existingUser = await getUserByEmail(email);
+        if (existingUser) {
+          throw new BadRequestError('User with that email already exists');
+        }
+      }
+
+      if (normPhone) {
+        const existingUser = await getUserByPhone(normPhone);
+        if (existingUser) {
+          throw new BadRequestError(
+            'User with that phone number already exists'
+          );
+        }
+      }
+
+      user = await createUser({
+        email,
+        phone: normPhone ?? undefined,
+        name,
+        is_guest: false,
+      });
+    } else {
+      user = await createUser({
+        name,
+        is_guest: true,
+      });
+    }
+
+    console.log('User created with ID:', user.id);
+
+    //  Create session in DB
+    const session = await createSession(user.id, null, 'web');
+
+    // Generate magic link token (optional for passwordless login later)
+    let magicLinkToken = null;
+    if (user.email || user.phone) {
+      const magicLink = await createMagicLinkToken(user.id);
+      magicLinkToken = magicLink.token;
+    }
+
+    // ✅ Create JWT including sessionToken
+    const userJwt = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        is_guest: user.is_guest,
+        sessionToken: session.session_token, // <-- include session token
+      },
+      process.env.JWT_KEY!
+    );
+
+    req.session = {
+      jwt: userJwt,
+    };
+
+    res.status(201).send({
+      userId: user.id,
+      jwt: userJwt,
+      sessionToken: session.session_token,
+      magicLinkToken, // Optional: can omit in production
+    });
+  } catch (err) {
+    console.error('Error creating user:', err);
+    throw err;
   }
-
-  // Check if a user has inputted phone and email
-  // If yes, find an account
-
-  const {
-    number,
-    uuid,
-    name,
-    nick_name,
-    email,
-    phone,
-    postal_code,
-    latitude,
-    longitude,
-    birth_date,
-    gender,
-    password,
-    is_verified = false,
-    status = 1,
-  } = req.body;
-
-  res.status(200).send({});
-
-  // // Simple validation
-  // if (!email || !password || !uuid) {
-  //   return res
-  //     .status(400)
-  //     .json({ error: 'Email, password, and UUID are required.' });
-  // }
-
-  // try {
-  //   // Check if the user already exists
-  //   const existingUser = await getUserByEmail(email);
-  //   if (existingUser) {
-  //     return res
-  //       .status(409)
-  //       .json({ error: 'User with this email already exists.' });
-  //   }
-
-  //   // Create the new user
-  //   const user = await createUser({
-  //     number,
-  //     uuid,
-  //     name,
-  //     nick_name,
-  //     email,
-  //     phone,
-  //     postal_code,
-  //     latitude,
-  //     longitude,
-  //     birth_date,
-  //     gender,
-  //     password,
-  //     is_verified,
-  //     status,
-  //   });
-
-  //   return res.status(201).json({ user });
-  // } catch (error) {
-  //   console.error('Error creating user:', error);
-  //   return res.status(500).json({ error: 'Failed to create user.' });
-  // }
 });
 
 export { router as createUserRouter };
