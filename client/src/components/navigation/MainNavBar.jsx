@@ -1,9 +1,9 @@
 import Image from 'next/image';
-import RSVPIcon from '@/assets/33-ofcpy.png';
-import NewIcon from '@/assets/31-ofcpy.png';
-import UpcomingIcon from '@/assets/32-ofcpy.png';
-import HighlightsIcon from '@/assets/30-ofcpy.png';
-import MeIcon from '@/assets/29-ofcpy.png';
+import RSVPIcon from '@/assets/33-ofcpy.PNG';
+import NewIcon from '@/assets/31-ofcpy.PNG';
+import UpcomingIcon from '@/assets/32-ofcpy.PNG';
+import HighlightsIcon from '@/assets/30-ofcpy.PNG';
+import MeIcon from '@/assets/29-ofcpy.PNG';
 
 export default function MainNavBar({ activeTab, setActiveTab }) {
   const navItems = [

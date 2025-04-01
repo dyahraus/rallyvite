@@ -1,18 +1,18 @@
-# auth/Dockerfile
-FROM node:16
+# auth-service/Dockerfile
+FROM node:18
 
-# Set the working directory for the auth service
+# Set the working directory for the client service
 WORKDIR /usr/src/app
 
-# Copy package.json and install dependencies
+# Copy package.json and package-lock.json and install dependencies
 COPY ./package*.json ./
-# RUN npm install
+RUN npm install
 
-# Copy the auth service code
+# Copy the client app code
 COPY . ./
 
 # Expose the port the auth service will run on
 EXPOSE 3001
 
 # # Command to run the auth service
-# CMD ["npm", "start"]
+CMD ["npm", "start"]

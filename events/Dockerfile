@@ -1,5 +1,5 @@
 # events/Dockerfile
-FROM node:16
+FROM node:18
 
 # Set the working directory for the events service
 WORKDIR /usr/src/app

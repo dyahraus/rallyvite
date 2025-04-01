@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: events-service
+spec:
+  replicas: 1 # Adjust as needed for scaling
+  selector:
+    matchLabels:
+      app: events-service
+  template:
+    metadata:
+      labels:
+        app: events-service
+    spec:
+      containers:
+        - name: events-service
+          image: events-service # Replace with the Docker image name for the events service
+          # ports:
+          #   - containerPort: 5000 # The port your events service listens on
+          # env:
+          #   - name: NODE_ENV
+          #     value: 'production'
+          #   - name: DATABASE_URL
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: events-db-secret # Replace with your actual secret name
+          #         key: DATABASE_URL # The key within the secret that holds your DB connection URL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: events-service
+spec:
+  selector:
+    app: events-service
+  ports:
+    - name: events
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

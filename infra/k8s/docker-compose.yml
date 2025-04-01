@@ -5,9 +5,15 @@ services:
       dockerfile: ../auth/Dockerfile
     ports:
       - '3001:3001'
-    # environment:
-    #   - NODE_ENV=production
-
+    environment:
+      - PG_USER=${PG_USER}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_HOST=${PG_HOST}
+      - PG_PORT=${PG_PORT}
+      - PG_DATABASE=${PG_DATABASE}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - SENDER_EMAIL=${SENDER_EMAIL}
+      - FRONTEND_URL=${FRONTEND_URL}
   # client:
   #   build:
   #     context: .

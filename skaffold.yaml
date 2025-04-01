@@ -1,0 +1,36 @@
+apiVersion: skaffold/v2beta19
+kind: Config
+metadata:
+  name: rallyvite # Set the name of your application (adjust as needed)
+build:
+  artifacts:
+    - image: auth-service
+      context: ./auth
+      docker:
+        dockerfile: ./auth/Dockerfile # Path to your Dockerfile for the auth service
+    - image: client-service
+      context: ./client
+      docker:
+        dockerfile: ./client/Dockerfile # Path to your Dockerfile for the client service
+    - image: events-service
+      context: ./events
+      docker:
+        dockerfile: ./events/Dockerfile # Path to your Dockerfile for the events service
+  local:
+    push: false # Don't push images to a remote registry; use locally built images for testing
+
+deploy:
+  kubectl:
+    manifests:
+      - ./infra/k8s/auth-deployment.yaml # Path to the auth service deployment manifest
+      - ./infra/k8s/client-deployment.yaml # Path to the client service deployment manifest
+      - ./infra/k8s/events-deployment.yaml # Path to the events service deployment manifest
+
+# Optional: Use Docker Compose for local development if you're running containers locally
+# deploy:
+#   dockerCompose:
+#     file: infra/docker-compose.yml
+#     services:
+#       - auth
+#       - client
+#       - events

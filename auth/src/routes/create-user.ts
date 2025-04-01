@@ -18,10 +18,12 @@ router.post('/api/users/createuser', async (req: Request, res: Response) => {
   try {
     const { email, phone, name } = req.body;
 
-    const normPhone = normalizePhoneNumber(phone);
-
     if (!name) {
       throw new BadRequestError('Must have a name to be associated with user');
+    }
+    let normPhone;
+    if (phone) {
+      normPhone = normalizePhoneNumber(phone);
     }
 
     let user: User;

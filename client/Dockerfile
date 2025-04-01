@@ -1,5 +1,5 @@
 # client/Dockerfile
-FROM node:16
+FROM node:18
 
 # Set the working directory for the client service
 WORKDIR /usr/src/app
@@ -12,10 +12,10 @@ RUN npm install
 COPY . ./
 
 # Build the client app (e.g., React, Next.js, etc.)
-RUN npm run dev
+# RUN npm run dev
 
 # Expose the port for the client service (adjust if different)
 EXPOSE 3000
 
 # Command to start the client service (use npm start for React, Next.js, etc.)
-CMD ["npm", "start"]
+CMD ["npm", "run","dev"]
