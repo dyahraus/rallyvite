@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS sessions CASCADE;
 
 CREATE TABLE sessions (
   id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
+  user_id UUID REFERENCES users(uuid),
   session_token UUID NOT NULL UNIQUE,
   device_id VARCHAR(64),
   session_type VARCHAR(10),

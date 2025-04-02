@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: events-postgres
+spec:
+  serviceName: 'events-postgres-service'
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-events
+  template:
+    metadata:
+      labels:
+        app: postgres-events
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:13
+          env:
+            - name: POSTGRES_USER
+              value: 'postgres'
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-password
+                  key: PG_PASSWORD # Make sure this secret contains the password
+            - name: POSTGRES_DB
+              value: 'rallyvite_events' # The database to be created for events service
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-storage
+      spec:
+        accessModes: ['ReadWriteOnce']
+        resources:
+          requests:
+            storage: 10Gi

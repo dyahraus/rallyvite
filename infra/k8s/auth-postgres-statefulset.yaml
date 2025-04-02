@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: postgres
+  name: auth-postgres
 spec:
-  serviceName: 'postgres-service'
+  serviceName: 'auth-postgres-service'
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: postgres-auth
   template:
     metadata:
       labels:
-        app: postgres
+        app: postgres-auth
     spec:
       containers:
         - name: postgres

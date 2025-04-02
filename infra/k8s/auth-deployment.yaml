@@ -26,7 +26,7 @@ spec:
                   name: pg-password
                   key: PG_PASSWORD
             - name: PG_HOST
-              value: postgres-service # Connects to the Postgres service in the cluster
+              value: auth-postgres-service # Connects to the Postgres service in the cluster
             - name: PG_PORT
               value: '5432'
             - name: PG_DATABASE

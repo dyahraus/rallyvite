@@ -58,22 +58,22 @@ router.post('/api/users/createuser', async (req: Request, res: Response) => {
       });
     }
 
-    console.log('User created with ID:', user.id);
+    console.log('User created with ID:', user.uuid);
 
     //  Create session in DB
-    const session = await createSession(user.id, null, 'web');
+    const session = await createSession(user.uuid, null, 'web');
 
     // Generate magic link token (optional for passwordless login later)
     let magicLinkToken = null;
     if (user.email || user.phone) {
-      const magicLink = await createMagicLinkToken(user.id);
+      const magicLink = await createMagicLinkToken(user.uuid);
       magicLinkToken = magicLink.token;
     }
 
     // ✅ Create JWT including sessionToken
     const userJwt = jwt.sign(
       {
-        id: user.id,
+        id: user.uuid,
         email: user.email,
         is_guest: user.is_guest,
         sessionToken: session.session_token, // <-- include session token
@@ -86,7 +86,7 @@ router.post('/api/users/createuser', async (req: Request, res: Response) => {
     };
 
     res.status(201).send({
-      userId: user.id,
+      userId: user.uuid,
       jwt: userJwt,
       sessionToken: session.session_token,
       magicLinkToken, // Optional: can omit in production
