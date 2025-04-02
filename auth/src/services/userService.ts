@@ -2,19 +2,22 @@ import pool from '../config/db';
 import { User } from '../models/user';
 import { parsePhoneNumberFromString, CountryCode } from 'libphonenumber-js';
 import { BadRequestError } from '../errors/bad-request-error';
+import { v4 as uuidv4 } from 'uuid'; // Import the uuid package
 
 // Create a new user
 export const createUser = async (user: Partial<User>): Promise<User> => {
+  const userUuid = user.uuid || uuidv4(); // Generate UUID if not provided
+
   const result = await pool.query<User>(
     `
     INSERT INTO users (
-      uuid, name, nick_name, email, phone, is_verified, status
+      uuid, name, nick_name, email, phone, is_verified, status, is_guest
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7
+      $1, $2, $3, $4, $5, $6, $7, $8
     ) RETURNING *;
     `,
     [
-      user.uuid,
+      userUuid,
       user.name,
       user.nick_name,
       user.email,

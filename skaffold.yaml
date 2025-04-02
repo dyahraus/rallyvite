@@ -22,10 +22,7 @@ build:
 deploy:
   kubectl:
     manifests:
-      - ./infra/k8s/auth-deployment.yaml # Path to the auth service deployment manifest
-      - ./infra/k8s/client-deployment.yaml # Path to the client service deployment manifest
-      - ./infra/k8s/events-deployment.yaml # Path to the events service deployment manifest
-
+      - ./infra/k8s/*
 # Optional: Use Docker Compose for local development if you're running containers locally
 # deploy:
 #   dockerCompose:

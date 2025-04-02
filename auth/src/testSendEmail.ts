@@ -1,7 +1,4 @@
 import { sendMagicLinkEmail } from './services/emailService';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const test = async () => {
   console.log('entered test');

@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS `magic_link_tokens`;
+DROP TABLE IF EXISTS "magic_link_tokens" CASCADE;
 CREATE TABLE magic_link_tokens (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),

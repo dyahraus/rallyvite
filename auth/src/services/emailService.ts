@@ -1,8 +1,7 @@
 import sgMail from '@sendgrid/mail';
-import { env } from '../config/env'; // or adjust the path if needed
 
-console.log('Using SENDGRID_API_KEY:', env.sendGridApiKey);
-sgMail.setApiKey(env.sendGridApiKey);
+console.log('Using SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
 
 export const sendMagicLinkEmail = async (
   email: string,
