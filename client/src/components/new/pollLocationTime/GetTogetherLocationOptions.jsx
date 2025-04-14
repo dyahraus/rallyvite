@@ -5,14 +5,29 @@ import usePlacesAutocomplete, {
   getLatLng,
   getDetails,
 } from 'use-places-autocomplete';
+import { motion, AnimatePresence } from 'framer-motion';
+
 export default function GetTogetherLocationOptions({ onLocationSubmit }) {
   const [manualEntry, setManualEntry] = useState(false); // Tracks if user wants manual input
   const [suggestionDetails, setSuggestionDetails] = useState({});
   const [useGeneralSearch, setUseGeneralSearch] = useState(false); // Toggles API query type
 
   const [locationValue, setLocationValue] = useState(''); // Location for return to backend
-  const [addressValue, setAddress] = useState(''); // Address for return to backend
+  const [addressValue, setAddressValue] = useState(''); // Address for return to backend
   const [manualInputValue, setManualInputValue] = useState(''); // To track manual input functionality
+
+  const [gpData, setGPData] = useState({
+    name: '',
+    address: '',
+    street: '',
+    city: '',
+    locationState: '',
+    zip: '',
+    latitude: null,
+    longitude: null,
+    googlePlaceId: '',
+    source: '',
+  });
 
   const {
     ready,
@@ -91,23 +106,23 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
   // Handles typing inside the manual entry input
   const handleManualInputChange = (e) => {
     setManualInputValue(e.target.value);
-    setAddress(e.target.value);
+    setAddressValue(e.target.value);
     setValue(e.target.value);
     setUseGeneralSearch(true); // Switch to general address search
   };
 
-  // Handles manual address submission
-  const handleManualSubmit = () => {
-    if (manualInputValue.trim()) {
-      setManualEntry(false);
-      clearSuggestions();
-    }
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (locationValue.trim() && addressValue.trim()) {
-      onLocationSubmit(locationValue, addressValue);
+    if (locationValue.trim()) {
+      if (gpData.name === locationValue && gpData.address === addressValue) {
+        onLocationSubmit(gpData);
+      } else {
+        onLocationSubmit({
+          name: locationValue,
+          address: addressValue,
+          source: 'manual',
+        });
+      }
     }
   };
 
@@ -156,17 +171,17 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
         lng: placeDetails.geometry.location.lng(),
       };
 
-      if (!manualInputValue.trim()) {
-        setLocationValue(selectedLocation.name);
-      }
-      setAddress(selectedLocation.address);
+      setLocationValue(selectedLocation.name);
+      setAddressValue(selectedLocation.address);
 
       // FIX THIS TO BE THE LOCATION OBJECT
-      onLocationSubmit({
-        locationName: selectedLocation.name,
+      setGPData({
+        name: selectedLocation.name,
         address: selectedLocation.address,
         street: selectedLocation.street,
-        cityStateZip: selectedLocation.cityStateZip,
+        city: city,
+        locationState: state,
+        zip: zip,
         latitude: selectedLocation.lat,
         longitude: selectedLocation.lng,
         googlePlaceId: placeId,
@@ -183,7 +198,7 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
 
   return (
     <div className="flex w-[90%] flex-col items-center mt-5 relative">
-      <h2 className="mb-2">Get-Together Location Option(s)</h2>
+      <h2 className="mb-2">Get-Together Location(s)</h2>
 
       <form onSubmit={handleSubmit} className="w-full relative">
         <input
@@ -193,25 +208,28 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
           placeholder="Ex: Dave's Bar"
           className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+        <button
+          type="button"
+          disabled={locationValue.trim() === ''}
+          className={`absolute inset-y-1 right-2 font-medium py-2 px-6 rounded-full shadow bg-rallyBlue hover:bg-rallyBlue ${
+            locationValue.trim() === '' ? 'text-gray-50' : 'text-rallyYellow'
+          }`}
+          style={{ minWidth: '110px', height: '40px' }}
+          onClick={handleSubmit}
+        >
+          Next
+        </button>
       </form>
 
       {/* Manual Entry Input */}
-      <li className="p-2 border-b border-gray-300">
+      <li className="p-2 border-b w-full list-none border-gray-300">
         <input
           type="text"
           value={addressValue}
           onChange={handleManualInputChange}
           placeholder="Enter address manually"
-          className="w-full border border-gray-300 rounded-full p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full border border-gray-300 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
-        {manualInputValue && (
-          <button
-            onClick={handleManualSubmit}
-            className="w-full mt-1 bg-blue-500 text-white p-2 rounded-lg text-sm"
-          >
-            Use this address
-          </button>
-        )}
       </li>
 
       {/*  Display formatted suggestions */}

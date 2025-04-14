@@ -1,33 +1,36 @@
-apiVersion: skaffold/v2beta19
+apiVersion: skaffold/v2alpha3
 kind: Config
-metadata:
-  name: rallyvite # Set the name of your application (adjust as needed)
-build:
-  artifacts:
-    - image: auth-service
-      context: ./auth
-      docker:
-        dockerfile: ./auth/Dockerfile # Path to your Dockerfile for the auth service
-    - image: client-service
-      context: ./client
-      docker:
-        dockerfile: ./client/Dockerfile # Path to your Dockerfile for the client service
-    - image: events-service
-      context: ./events
-      docker:
-        dockerfile: ./events/Dockerfile # Path to your Dockerfile for the events service
-  local:
-    push: false # Don't push images to a remote registry; use locally built images for testing
-
 deploy:
   kubectl:
     manifests:
       - ./infra/k8s/*
-# Optional: Use Docker Compose for local development if you're running containers locally
-# deploy:
-#   dockerCompose:
-#     file: infra/docker-compose.yml
-#     services:
-#       - auth
-#       - client
-#       - events
+build:
+  local:
+    push: false
+  artifacts:
+    - image: dyahraus/auth-service
+      context: auth
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/***/*.ts'
+            dest: .
+    - image: dyahraus/events-service
+      context: events
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/***/*.ts'
+            dest: .
+    - image: dyahraus/client-service
+      context: client
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: '***/*.js'
+            dest: .
+          - src: 'src/***/*.css' # Add this line to sync CSS files
+            dest: .

@@ -1,14 +1,53 @@
 'use client';
 import React, { useRef, useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setTimes } from '../../../redux/slices/getTogetherSlice';
 
-export default function TimeGrid() {
+export default function TimeGrid({ times, selectedDate, onTimeSubmit }) {
+  const dispatch = useDispatch();
+  const [selectedSlots, setSelectedSlots] = useState(times);
+  const prevDateRef = useRef(selectedDate);
+  console.log('TimeGrid received times:', times);
+  console.log('TimeGrid selectedSlots state:', selectedSlots);
+
+  const handleTimeSubmission = (dateToSave) => {
+    console.log('Submitting times to Redux:', selectedSlots);
+    dispatch(
+      setTimes({
+        selectedDate: dateToSave.toISOString(),
+        selectedSlots,
+      })
+    );
+  };
+
+  // Update selectedSlots when times changes
+  useEffect(() => {
+    console.log('TimeGrid useEffect triggered with new times:', times);
+    setSelectedSlots(times);
+  }, [times]);
+
+  // Save previous date's slots when date changes
+  useEffect(() => {
+    if (prevDateRef.current && prevDateRef.current !== selectedDate) {
+      handleTimeSubmission(prevDateRef.current);
+    }
+    prevDateRef.current = selectedDate;
+  }, [selectedDate]);
+
+  // Only update local state when user makes changes
+  const toggleSlotSelection = (hour, minute) => {
+    const key = slotKey(hour, minute);
+    setSelectedSlots((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
   const gridRef = useRef(null);
   const [scrollRatio, setScrollRatio] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartY = useRef(0);
   const dragStartScroll = useRef(0);
-
-  const [selectedSlots, setSelectedSlots] = useState({});
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = [0, 15, 30, 45];
@@ -17,14 +56,6 @@ export default function TimeGrid() {
 
   const isHourSelected = (hour) =>
     minutes.some((minute) => selectedSlots[slotKey(hour, minute)]);
-
-  const toggleSlotSelection = (hour, minute) => {
-    const key = slotKey(hour, minute);
-    setSelectedSlots((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
 
   const handleSlotMouseDown = (hour, minute) => {
     setIsDragging(true);

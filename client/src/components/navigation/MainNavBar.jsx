@@ -14,8 +14,12 @@ export default function MainNavBar({ activeTab, setActiveTab }) {
     { id: 'me', label: 'Me', icon: MeIcon },
   ];
 
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+  };
+
   return (
-    <nav className="w-full bg-blue-300 border-t border-gray-300 flex  items-center h-16">
+    <nav className="w-full bg-blue-300 border-t border-gray-300 flex items-center h-16">
       {navItems.map(({ id, label, icon }, index) => (
         <div key={id} className="relative flex flex-1 flex-col items-center">
           {activeTab === id && (
@@ -23,7 +27,8 @@ export default function MainNavBar({ activeTab, setActiveTab }) {
           )}
 
           <button
-            className={`flex flex-col items-center realtive z-10 ${
+            onClick={() => handleTabClick(id)}
+            className={`flex flex-col items-center relative z-10 w-full h-full ${
               activeTab === id ? 'text-rallyYellow' : 'text-white'
             }`}
           >
@@ -32,7 +37,7 @@ export default function MainNavBar({ activeTab, setActiveTab }) {
           </button>
           {/* Divider Line (skip last item) */}
           {index < navItems.length - 1 && (
-            <div className="absolute -right-0 top-1/2 transform -translate-y-1/2 h-10 w-0.5 bg-white "></div>
+            <div className="absolute -right-0 top-1/2 transform -translate-y-1/2 h-10 w-0.5 bg-white"></div>
           )}
         </div>
       ))}

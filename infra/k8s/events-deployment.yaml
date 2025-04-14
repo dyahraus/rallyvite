@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: events-service
-          image: events-service # Replace with your actual Docker image for the events service
+          image: dyahraus/events-service
           env:
             - name: PG_USER
               value: 'postgres'
@@ -34,6 +34,12 @@ spec:
                 secretKeyRef:
                   name: rallyvitejwt-secret
                   key: JWT_KEY
+            - name: KAFKA_BROKERS
+              value: 'kafka-service:9092'
+            - name: KAFKA_CLIENT_ID
+              value: 'events-service'
+            - name: KAFKA_GROUP_ID
+              value: 'events-group'
 ---
 apiVersion: v1
 kind: Service

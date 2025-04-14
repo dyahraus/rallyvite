@@ -1,35 +1,54 @@
 'use client';
-import { useState } from 'react';
-import ProgressTracker from '@/components/navigation/ProgressTracker';
+import { useState, useEffect } from 'react';
 import GetTogetherLocationOptions from '../../components/new/pollLocationTime/GetTogetherLocationOptions';
 import GetTogetherTimeOptions from '../../components/new/pollLocationTime/GetTogetherTimeOptions';
-import MainNavBar from '@/components/navigation/MainNavBar';
-import BottomActionBar from '@/components/navigation/BottomActionBar';
+import CollapsedSummary from '@/components/new/nameGetTogether/CollapsedSummary';
 import { LoadScript } from '@react-google-maps/api';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  setLocation,
+  setSelectedLocation,
+} from '../../redux/slices/getTogetherSlice';
 
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-export default function PollLocationsTimes() {
-  const [activeTab, setActiveTab] = useState('new'); // Example state for the nav bar
+export default function PollLocationsTimes({}) {
+  const dispatch = useDispatch();
+  const [activeStep, setActiveStep] = useState('location');
+  const [locationCompleted, setLocationCompleted] = useState(false);
+  const [timesCompleted, setTimesCompleted] = useState(false);
+
   return (
     <>
       <LoadScript googleMapsApiKey={apiKey} libraries={['places']}>
-        <GetTogetherLocationOptions
-          onLocationSubmit={() => console.log('test')}
-        />
+        <>
+          {activeStep === 'location' ? (
+            <GetTogetherLocationOptions
+              onLocationSubmit={(locationData) => {
+                dispatch(setLocation(locationData));
+                dispatch(setSelectedLocation(locationData));
+                setLocationCompleted(true);
+                setActiveStep('times');
+              }}
+            />
+          ) : (
+            <CollapsedSummary
+              label="Get-Together Location(s)"
+              onEdit={() => setActiveStep('location')}
+              isCompleted={true}
+            />
+          )}
+        </>
       </LoadScript>
-      <GetTogetherTimeOptions />
-      {/* Bottom nav and action bar container */}
-      <div className="fixed bottom-0 w-full flex flex-col-reverse items-center">
-        <BottomActionBar
-          label={'Next'}
-          disabled={false} // Replace with real validation
-          onClick={() => {
-            console.log('Hello');
-          }}
+      {activeStep === 'times' ? (
+        <GetTogetherTimeOptions />
+      ) : (
+        <CollapsedSummary
+          label="Get-Together Time Option(s)"
+          onEdit={() => setActiveStep('times')}
+          isCompleted={true}
         />
-        <MainNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
-      </div>
+      )}
     </>
   );
 }

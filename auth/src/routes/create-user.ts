@@ -11,6 +11,7 @@ import { BadRequestError } from '../errors/bad-request-error';
 import jwt from 'jsonwebtoken';
 import { createSession } from '../services/sessionService';
 import { createMagicLinkToken } from '../services/magicLinkService';
+import { producer } from '../config/kafka';
 
 const router = express.Router();
 
@@ -60,7 +61,25 @@ router.post('/api/users/createuser', async (req: Request, res: Response) => {
 
     console.log('User created with ID:', user.uuid);
 
-    //  Create session in DB
+    // Publish user created event to Kafka
+    await producer.send({
+      topic: 'user-created',
+      messages: [
+        {
+          value: JSON.stringify({
+            id: user.id,
+            uuid: user.uuid,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            is_guest: user.is_guest,
+            date_created: user.date_created,
+          }),
+        },
+      ],
+    });
+
+    // Create session in DB
     const session = await createSession(user.uuid, null, 'web');
 
     // Generate magic link token (optional for passwordless login later)
@@ -70,13 +89,13 @@ router.post('/api/users/createuser', async (req: Request, res: Response) => {
       magicLinkToken = magicLink.token;
     }
 
-    // ✅ Create JWT including sessionToken
+    // Create JWT including sessionToken
     const userJwt = jwt.sign(
       {
-        id: user.uuid,
+        id: user.id,
         email: user.email,
         is_guest: user.is_guest,
-        sessionToken: session.session_token, // <-- include session token
+        sessionToken: session.session_token,
       },
       process.env.JWT_KEY!
     );
@@ -86,10 +105,10 @@ router.post('/api/users/createuser', async (req: Request, res: Response) => {
     };
 
     res.status(201).send({
-      userId: user.uuid,
+      userId: user.id,
       jwt: userJwt,
       sessionToken: session.session_token,
-      magicLinkToken, // Optional: can omit in production
+      magicLinkToken,
     });
   } catch (err) {
     console.error('Error creating user:', err);

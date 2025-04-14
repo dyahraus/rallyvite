@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: auth-service # This should be the Docker image you build
+          image: dyahraus/auth-service
           # ports:
           #   - containerPort: 3001
           env:
@@ -45,6 +45,12 @@ spec:
                 secretKeyRef:
                   name: rallyvitejwt-secret
                   key: JWT_KEY
+            - name: KAFKA_BROKERS
+              value: 'kafka-service:9092'
+            - name: KAFKA_CLIENT_ID
+              value: 'auth-service'
+            - name: KAFKA_GROUP_ID
+              value: 'auth-group'
 ---
 apiVersion: v1
 kind: Service

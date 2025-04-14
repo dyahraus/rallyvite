@@ -18,7 +18,7 @@ const getWeekRange = (startDate) => {
   return Array.from({ length: 7 }, (_, i) => addDays(start, i));
 };
 
-export default function DateCarousel({ selectedDate, onDateChange }) {
+export default function DateCarousel({ selectedDate, handleDateChange }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [error, setError] = useState(''); // To show error if user selects invalid date
 
@@ -35,7 +35,7 @@ export default function DateCarousel({ selectedDate, onDateChange }) {
       setTimeout(() => setError(''), 2000); // Auto-hide error after 2 seconds
       return;
     }
-    onDateChange(dateToCheck); // Proceed normally if date is valid
+    handleDateChange(dateToCheck); // Proceed normally if date is valid
   };
 
   return (

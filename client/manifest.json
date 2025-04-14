@@ -1,0 +1,6 @@
+{
+  "name": "Rallyvite",
+  "short_name": "Rallyvite",
+  "start_url": "/",
+  "display": "standalone"
+}

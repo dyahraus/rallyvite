@@ -5,19 +5,15 @@ DROP TABLE IF EXISTS event_dates CASCADE;
 CREATE TABLE event_dates (
   id SERIAL PRIMARY KEY,
   event_id INT NOT NULL,
-  status SMALLINT DEFAULT 1,
-  date_start TIMESTAMP,
-  date_end TIMESTAMP,
-  time_zone VARCHAR(30),
-  description TEXT,
-  location VARCHAR(200),
-  place_id INT,
+  location_id INT NOT NULL,
+  date DATE NOT NULL,
+  status SMALLINT DEFAULT 1,  
   date_last_notification TIMESTAMP,
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
   CONSTRAINT fk_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
-  CONSTRAINT fk_place FOREIGN KEY (place_id) REFERENCES places(id) ON DELETE SET NULL
+  CONSTRAINT fk_location FOREIGN KEY (location_id) REFERENCES locations(id) ON DELETE SET NULL
 );
 
 -- Attach trigger to the event_dates table

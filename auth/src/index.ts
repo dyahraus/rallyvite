@@ -1,6 +1,7 @@
 import { app } from './app';
 import { pool } from './config/db';
 import { runMigrations } from './config/initDb';
+import { connectProducer, disconnectProducer } from './config/kafka';
 
 const start = async () => {
   if (!process.env.PG_USER) throw new Error('PG_USER must be defined');
@@ -15,6 +16,10 @@ const start = async () => {
   if (!process.env.FRONTEND_URL)
     throw new Error('FRONTEND_URL must be defined');
   if (!process.env.JWT_KEY) throw new Error('JWT_KEY must be defined');
+  if (!process.env.KAFKA_BROKERS)
+    throw new Error('KAFKA_BROKERS must be defined');
+  if (!process.env.KAFKA_CLIENT_ID)
+    throw new Error('KAFKA_CLIENT_ID must be defined');
 
   console.log('PG_USER:', process.env.PG_USER);
   console.log('PG_HOST:', process.env.PG_HOST);
@@ -25,6 +30,8 @@ const start = async () => {
   console.log('SENDER_EMAIL:', process.env.SENDER_EMAIL);
   console.log('FRONTEND_URL:', process.env.FRONTEND_URL);
   console.log('JWT_KEY:', process.env.JWT_KEY);
+  console.log('KAFKA_BROKERS:', process.env.KAFKA_BROKERS);
+  console.log('KAFKA_CLIENT_ID:', process.env.KAFKA_CLIENT_ID);
 
   try {
     await runMigrations();
@@ -32,6 +39,9 @@ const start = async () => {
   } catch {
     throw new Error('Database failed');
   }
+
+  // Connect to Kafka
+  await connectProducer();
 
   app.listen(3000, () => {
     console.log('Listening on port 3000!!!!');
@@ -43,12 +53,14 @@ start();
 // Graceful shutdown handling
 process.on('SIGINT', async () => {
   console.log('Shutting down...');
-  await pool.end(); // Close the pool when the app is shutting down
-  process.exit(0); // Exit the process
+  await disconnectProducer();
+  await pool.end();
+  process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('Shutting down...');
-  await pool.end(); // Close the pool when the app is shutting down
-  process.exit(0); // Exit the process
+  await disconnectProducer();
+  await pool.end();
+  process.exit(0);
 });

@@ -1,13 +1,9 @@
 export interface EventDate {
   id: number;
   eventId: number;
+  locationId: number;
+  date: Date;
   status: number;
-  dateStart: Date | null;
-  dateEnd: Date | null;
-  timeZone: string | null;
-  description: string | null;
-  location: string | null;
-  placeId: number | null;
   dateLastNotification: Date | null;
   dateCreated: Date;
   lastModified: Date;

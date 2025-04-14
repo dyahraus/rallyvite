@@ -1,108 +1,144 @@
 import express, { Request, Response } from 'express';
-import { currentUser } from '..//middlewares/current-user';
+import { currentUser } from '../middlewares/current-user';
 import { NotAuthorizedError } from '../errors/not-authorized-error';
 import { createEvent } from '../services/eventService';
-import { addUserToEvent } from '../services/eventUserService';
+import { addUserToEvent } from '../services/eventService';
 import {
-  createPlace,
-  findPlaceByNameAndAddress,
-} from '../services/placeService';
+  createLocation,
+  findLocationByNameAndAddress,
+} from '../services/locationService';
+import { createEventDateWithTimes } from '../services/eventDateService';
 
 interface LocationPayload {
-  locationName: string;
+  name: string;
   address: string;
-  source: 'google' | 'manual';
+  city: string;
+  locationState: string;
+  zip: string;
+  country: string;
+  latitude: string;
+  longitude: string;
+  googlePlaceId: string;
+  source: string;
+  dates: Array<{
+    date: string;
+    times: Record<string, boolean>;
+  }>;
 }
 
 const router = express.Router();
 
 router.post('/api/events/create', async (req: Request, res: Response) => {
-  if (!req.currentUser) {
-    throw new NotAuthorizedError();
-  }
-
-  // NEED TO ADD DURATION, EVENT DATES
-  const { name, description, location } = req.body;
+  console.log('Received create event request');
+  const { name, description, duration, locations } = req.body;
+  console.log('Request body:', { name, description, duration, locations });
 
   if (!name || typeof name !== 'string' || name.trim() === '') {
+    console.log('Invalid name provided');
     res.status(400).send({ error: 'Event name is required.' });
     return;
   }
 
-  let placeId: number | null = null;
-  let newPlace = null;
-
-  if (location) {
-    const existingPlace = await findPlaceByNameAndAddress(
-      location.locationName,
-      location.address
-    );
-    if (existingPlace) {
-      placeId = existingPlace.id;
-    } else {
-      if (location.source === 'google') {
-        // Create a new place record
-        newPlace = await createPlace({
-          status: 1,
-          type: location.source === 'google' ? 'google_place' : 'manual_entry',
-          name: location.locationName,
-          description: null,
-          address1: location.address,
-          address2: '',
-          city: location.cityStateZip?.split(',')[0]?.trim() || '',
-          state:
-            location.cityStateZip?.split(',')[1]?.split(' ')[0]?.trim() || '',
-          zip: location.cityStateZip?.split(' ')[1]?.trim() || '',
-          country: 'US',
-          latitude: location.latitude ?? null,
-          longitude: location.longitude ?? null,
-          googlePlaceId: location.googlePlaceId ?? null,
-          websiteUrl: '',
-          pageContent: '',
-          rating: null,
-          ratingsCount: 0,
-          businessHoursJson: null,
-        });
-      } else {
-        // Create a new place record
-        newPlace = await createPlace({
-          status: 1,
-          type: location.source === 'google' ? 'google_place' : 'manual_entry',
-          name: location.locationName,
-          description: null,
-          address1: location.address,
-          address2: '',
-          city: '', // You can parse city/state/zip from frontend if desired
-          state: '',
-          zip: '',
-          country: 'US',
-          latitude: null,
-          longitude: null,
-          googlePlaceId: location.source === 'google' ? 'unknown' : null, // Could be provided by frontend
-          websiteUrl: '',
-          pageContent: '',
-          rating: null,
-          ratingsCount: 0,
-          businessHoursJson: null,
-        });
-      }
-      placeId = newPlace.id;
-    }
-  }
-
   try {
+    // Create the event first
+    console.log('Creating event with name:', name);
+    console.log('Description:', description);
+    console.log('Duration:', duration);
+    console.log('Locations:', locations);
+    console.log('Current user:', req.currentUser);
+
     const newEvent = await createEvent({
       name: name.trim(),
       description: description?.trim() || null,
+      duration: duration?.trim() || null,
     });
+    console.log('Event created successfully:', newEvent);
 
-    await addUserToEvent({
-      eventId: newEvent.id,
-      userId: req.currentUser.id,
-      type: 'organizer',
-      rolesJson: { organizer: true },
-    });
+    // Add the current user as organizer
+    if (req.currentUser) {
+      console.log('Adding current user as organizer:', req.currentUser.id);
+      await addUserToEvent(
+        newEvent.id,
+        Number(req.currentUser.id),
+        'organizer'
+      );
+      console.log('User added as organizer successfully');
+    }
 
+    // Process each location
+    if (locations && Array.isArray(locations)) {
+      console.log('Processing locations:', locations.length);
+      for (const location of locations) {
+        if (location.name === 'No Location Selected') {
+          console.log('Skipping "No Location Selected"');
+          continue;
+        }
+
+        console.log('Processing location:', location.name);
+        // Find or create location
+        let locationId: number | null = null;
+        const existingLocation = await findLocationByNameAndAddress(
+          location.name,
+          location.address
+        );
+
+        if (existingLocation) {
+          console.log('Found existing location:', existingLocation.id);
+          locationId = existingLocation.id;
+        } else {
+          console.log('Creating new location:', location.name);
+          const newLocation = await createLocation({
+            name: location.name,
+            address: location.address,
+            city: location.city,
+            state: location.locationState,
+            zip: location.zip,
+            country: location.country,
+            latitude: location.latitude ? parseFloat(location.latitude) : null,
+            longitude: location.longitude
+              ? parseFloat(location.longitude)
+              : null,
+            googlePlaceId: location.googlePlaceId,
+            source: location.source,
+            type:
+              location.source === 'google' ? 'google_place' : 'manual_entry',
+          });
+          console.log('New location created:', newLocation.id);
+          locationId = newLocation.id;
+        }
+
+        // Process dates and times for this location
+        if (location.dates && Array.isArray(location.dates)) {
+          console.log('Processing dates for location:', locationId);
+          for (const dateData of location.dates) {
+            if (!dateData.date || !dateData.times) {
+              console.log('Skipping invalid date data');
+              continue;
+            }
+
+            console.log('Creating event date:', dateData.date);
+            // Convert date string to Date object
+            const date = new Date(dateData.date);
+
+            // Convert times object to array of selected times
+            const selectedTimes = Object.entries(dateData.times)
+              .filter(([_, isSelected]) => isSelected)
+              .map(([time]) => time);
+
+            // Create event date and times
+            await createEventDateWithTimes(
+              newEvent.id,
+              locationId,
+              date,
+              selectedTimes
+            );
+            console.log('Event date and times created successfully');
+          }
+        }
+      }
+    }
+
+    console.log('Event creation completed successfully');
     res.status(201).send(newEvent);
   } catch (err) {
     console.error('Error creating event:', err);

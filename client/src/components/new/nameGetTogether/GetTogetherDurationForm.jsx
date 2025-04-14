@@ -1,14 +1,15 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useBottomActionBar } from '@/context/BottomActionBarContext';
 
 export default function GetTogetherDurationForm({
   onDurationSubmit,
-  setBottomAction,
   setCurrentStep,
 }) {
   const [hours, setHours] = useState('0');
   const [minutes, setMinutes] = useState('00');
   const [openEnded, setOpenEnded] = useState(false);
+  const { setBottomAction } = useBottomActionBar();
 
   const handleSubmit = (e) => {
     e.preventDefault();

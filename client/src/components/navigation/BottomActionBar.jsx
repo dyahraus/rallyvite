@@ -1,4 +1,8 @@
-export default function BottomActionBar({ label, disabled, onClick }) {
+import { useBottomActionBar } from '@/context/BottomActionBarContext';
+
+export default function BottomActionBar() {
+  const { label, disabled, onClick, textColor } = useBottomActionBar();
+
   return (
     <button
       onClick={onClick}

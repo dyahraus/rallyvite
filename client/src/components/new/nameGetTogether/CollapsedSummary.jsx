@@ -17,6 +17,7 @@ export default function CollapsedSummary({
         onClick={onEdit}
         className="text-blue-500"
         aria-label={`Edit ${label}`}
+        disabled={!isCompleted}
       >
         {isCompleted ? (
           <PencilSquareIcon className="h-6 w-6" />

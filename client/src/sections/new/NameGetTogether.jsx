@@ -4,103 +4,82 @@ import ProgressTracker from '../../components/navigation/ProgressTracker';
 import GetTogetherNameForm from '../../components/new/nameGetTogether/GetTogetherNameForm';
 import GetTogetherDescriptionForm from '../../components/new/nameGetTogether/GetTogetherDescriptionForm';
 import GetTogetherDurationForm from '../../components/new/nameGetTogether/GetTogetherDurationForm';
-import CollapsedSummary from '../../components/CollapsedSummary';
+import CollapsedSummary from '../../components/new/nameGetTogether/CollapsedSummary';
 import MainNavBar from '../../components/navigation/MainNavBar';
 import BottomActionBar from '../../components/navigation/BottomActionBar';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+  setName,
+  setDescription,
+  setDuration,
+} from '../../redux/slices/getTogetherSlice';
 
-export default function NameGetTogether({
-  getTogether,
-  setGetTogether,
-  setBottomAction,
-  setCurrentStep,
-}) {
+export default function NameGetTogether({ setCurrentStep }) {
+  const dispatch = useDispatch();
+  const name = useSelector((state) => state.getTogether.name);
+  const description = useSelector((state) => state.getTogether.description);
+  const duration = useSelector((state) => state.getTogether.duration);
+
+  const [activeStep, setActiveStep] = useState('name');
   const [nameCompleted, setNameCompleted] = useState(false);
   const [descriptionCompleted, setDescriptionCompleted] = useState(false);
   const [durationCompleted, setDurationCompleted] = useState(false);
 
   return (
     <>
-      {getTogether.activeStep === 'name' ? (
+      {activeStep === 'name' ? (
         <GetTogetherNameForm
-          name={getTogether.name}
+          name={name}
           onNameSubmit={(name) => {
-            setGetTogether((prev) => ({
-              ...prev,
-              name: name,
-              activeStep: 'description', // Automatically move to description after submitting name
-            }));
+            dispatch(setName(name));
+            setActiveStep('description');
             setNameCompleted(true);
           }}
         />
       ) : (
         <CollapsedSummary
           label="Get-Together Activity Name"
-          value={getTogether.name}
-          onEdit={() =>
-            setGetTogether((prev) => ({
-              ...prev,
-              activeStep: 'name',
-            }))
-          }
+          value={name}
+          onEdit={() => setActiveStep('name')}
           isCompleted={nameCompleted}
         />
       )}
-      {getTogether.activeStep === 'description' ? (
+      {activeStep === 'description' ? (
         <GetTogetherDescriptionForm
-          description={getTogether.description}
+          description={description}
           onDescriptionSubmit={(description) => {
-            setGetTogether((prev) => ({
-              ...prev,
-              description: description,
-              activeStep: 'duration',
-            }));
+            dispatch(setDescription(description));
+            setActiveStep('duration');
             setDescriptionCompleted(true);
           }}
           onSkip={() => {
-            setGetTogether((prev) => ({
-              ...prev,
-              description: '',
-              activeStep: 'duration',
-            }));
+            dispatch(setDescription(''));
+            setActiveStep('duration');
             setDescriptionCompleted(true);
           }}
         />
       ) : (
         <CollapsedSummary
           label="Description (optional)"
-          value={getTogether.description}
-          onEdit={() =>
-            setGetTogether((prev) => ({
-              ...prev,
-              activeStep: 'description',
-            }))
-          }
+          value={description}
+          onEdit={() => setActiveStep('description')}
           isCompleted={descriptionCompleted}
         />
       )}
-      {getTogether.activeStep === 'duration' ? (
+      {activeStep === 'duration' ? (
         <GetTogetherDurationForm
           onDurationSubmit={(duration) => {
-            setGetTogether((prev) => ({
-              ...prev,
-              duration: description,
-              activeStep: 'duration',
-            }));
+            dispatch(setDuration(duration));
+            setActiveStep('duration');
             setDurationCompleted(true);
           }}
-          setBottomAction={setBottomAction}
           setCurrentStep={setCurrentStep}
         />
       ) : (
         <CollapsedSummary
           label="Duration"
-          value={getTogether.duration}
-          onEdit={() =>
-            setGetTogether((prev) => ({
-              ...prev,
-              activeStep: 'duration',
-            }))
-          }
+          value={duration}
+          onEdit={() => setActiveStep('duration')}
           isCompleted={durationCompleted}
         />
       )}

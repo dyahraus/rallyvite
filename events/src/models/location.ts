@@ -1,11 +1,10 @@
-export interface Place {
+export interface Location {
   id: number;
-  status: number;
+  uuid: string;
   type: string | null;
   name: string;
   description: string | null;
-  address1: string;
-  address2: string;
+  address: string;
   city: string;
   state: string;
   zip: string;
@@ -13,11 +12,7 @@ export interface Place {
   latitude: number | null;
   longitude: number | null;
   googlePlaceId: string | null;
-  websiteUrl: string | null;
-  pageContent: string | null;
-  rating: string | null;
-  ratingsCount: number | null;
-  businessHoursJson: any; // consider `Record<string, unknown>` if structured
+  source: string | null;
   dateCreated: Date;
   lastModified: Date;
 }
