@@ -3,7 +3,13 @@ kind: Config
 deploy:
   kubectl:
     manifests:
-      - ./infra/k8s/*
+      - ./infra/k8s/auth-deployment.yaml
+      - ./infra/k8s/auth-postgres-statefulset.yaml
+      - ./infra/k8s/auth-postgres-service.yaml
+      - ./infra/k8s/events-deployment.yaml
+      - ./infra/k8s/events-postgres-statefulset.yaml
+      - ./infra/k8s/events-postgres-service.yaml
+      - ./infra/k8s/client-deployment.yaml
 build:
   local:
     push: false

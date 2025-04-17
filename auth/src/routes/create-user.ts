@@ -61,23 +61,27 @@ router.post('/api/users/createuser', async (req: Request, res: Response) => {
 
     console.log('User created with ID:', user.uuid);
 
-    // Publish user created event to Kafka
-    await producer.send({
-      topic: 'user-created',
-      messages: [
-        {
-          value: JSON.stringify({
-            id: user.id,
-            uuid: user.uuid,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            is_guest: user.is_guest,
-            date_created: user.date_created,
-          }),
-        },
-      ],
-    });
+    try {
+      // Publish user created event to Kafka
+      await producer.send({
+        topic: 'user-created',
+        messages: [
+          {
+            value: JSON.stringify({
+              id: user.id,
+              uuid: user.uuid,
+              name: user.name,
+              email: user.email,
+              phone: user.phone,
+              is_guest: user.is_guest,
+              date_created: user.date_created,
+            }),
+          },
+        ],
+      });
+    } catch {
+      console.log('Event send failure');
+    }
 
     // Create session in DB
     const session = await createSession(user.uuid, null, 'web');

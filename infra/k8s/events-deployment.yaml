@@ -35,7 +35,7 @@ spec:
                   name: rallyvitejwt-secret
                   key: JWT_KEY
             - name: KAFKA_BROKERS
-              value: 'kafka-service:9092'
+              value: 'kafka:9092'
             - name: KAFKA_CLIENT_ID
               value: 'events-service'
             - name: KAFKA_GROUP_ID

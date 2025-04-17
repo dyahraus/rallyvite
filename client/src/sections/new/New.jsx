@@ -19,7 +19,7 @@ export default function New() {
       ) : currentStep === 2 ? (
         <PollLocationsTimes setCurrentStep={setCurrentStep} />
       ) : currentStep === 3 ? (
-        <SendInviteLink getTogether={getTogether} />
+        <SendInviteLink />
       ) : null}
     </div>
   );

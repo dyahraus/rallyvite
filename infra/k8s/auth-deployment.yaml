@@ -15,8 +15,8 @@ spec:
       containers:
         - name: auth-service
           image: dyahraus/auth-service
-          # ports:
-          #   - containerPort: 3001
+          ports:
+            - containerPort: 3000
           env:
             - name: PG_USER
               value: 'postgres'
@@ -46,7 +46,7 @@ spec:
                   name: rallyvitejwt-secret
                   key: JWT_KEY
             - name: KAFKA_BROKERS
-              value: 'kafka-service:9092'
+              value: 'kafka:9092'
             - name: KAFKA_CLIENT_ID
               value: 'auth-service'
             - name: KAFKA_GROUP_ID

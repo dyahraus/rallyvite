@@ -9,36 +9,66 @@ import {
   setLocation,
   setSelectedLocation,
 } from '../../redux/slices/getTogetherSlice';
+import LocationCarousel from '@/components/new/sendInviteLink/LocationCarousel';
+import { useBottomActionBar } from '@/context/BottomActionBarContext';
 
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-export default function PollLocationsTimes({}) {
+export default function PollLocationsTimes({ setCurrentStep }) {
   const dispatch = useDispatch();
   const [activeStep, setActiveStep] = useState('location');
+  const { setBottomAction } = useBottomActionBar();
   const [locationCompleted, setLocationCompleted] = useState(false);
   const [timesCompleted, setTimesCompleted] = useState(false);
+  const { locations } = useSelector((state) => state.getTogether);
+
+  useEffect(() => {
+    if (locationCompleted || timesCompleted) {
+      setBottomAction({
+        label: 'Continue',
+        disabled: false,
+        onClick: () => setCurrentStep(3),
+      });
+    } else {
+      setBottomAction({
+        label: 'Continue',
+        disabled: true,
+        onClick: () => {},
+      });
+    }
+  }, [locationCompleted, timesCompleted]);
+
+  const renderLocationSection = () => {
+    if (activeStep === 'location') {
+      return (
+        <GetTogetherLocationOptions
+          onLocationSubmit={(locationData) => {
+            dispatch(setLocation(locationData));
+            dispatch(setSelectedLocation(locationData));
+            setLocationCompleted(true);
+            setActiveStep('times');
+          }}
+        />
+      );
+    }
+
+    if (locationCompleted) {
+      return <LocationCarousel locations={locations} />;
+    }
+
+    return (
+      <CollapsedSummary
+        label="Get-Together Location(s)"
+        onEdit={() => setActiveStep('location')}
+        isCompleted={false}
+      />
+    );
+  };
 
   return (
     <>
       <LoadScript googleMapsApiKey={apiKey} libraries={['places']}>
-        <>
-          {activeStep === 'location' ? (
-            <GetTogetherLocationOptions
-              onLocationSubmit={(locationData) => {
-                dispatch(setLocation(locationData));
-                dispatch(setSelectedLocation(locationData));
-                setLocationCompleted(true);
-                setActiveStep('times');
-              }}
-            />
-          ) : (
-            <CollapsedSummary
-              label="Get-Together Location(s)"
-              onEdit={() => setActiveStep('location')}
-              isCompleted={true}
-            />
-          )}
-        </>
+        {renderLocationSection()}
       </LoadScript>
       {activeStep === 'times' ? (
         <GetTogetherTimeOptions />
@@ -46,7 +76,7 @@ export default function PollLocationsTimes({}) {
         <CollapsedSummary
           label="Get-Together Time Option(s)"
           onEdit={() => setActiveStep('times')}
-          isCompleted={true}
+          isCompleted={timesCompleted}
         />
       )}
     </>

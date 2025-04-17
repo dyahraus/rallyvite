@@ -1,7 +1,8 @@
 import { app } from './app';
 import { pool } from './config/db';
 import { runMigrations } from './config/initDb';
-import { connectProducer, disconnectProducer } from './config/kafka';
+import { disconnectProducer } from './config/kafka';
+import { bootstrapKafka } from './config/kafka';
 
 const start = async () => {
   if (!process.env.PG_USER) throw new Error('PG_USER must be defined');
@@ -40,8 +41,11 @@ const start = async () => {
     throw new Error('Database failed');
   }
 
-  // Connect to Kafka
-  await connectProducer();
+  try {
+    await bootstrapKafka();
+  } catch (err) {
+    console.error('[Kafka Init Failed]', err);
+  }
 
   app.listen(3000, () => {
     console.log('Listening on port 3000!!!!');
