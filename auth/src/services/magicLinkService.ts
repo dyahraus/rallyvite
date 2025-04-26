@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import sgMail from '@sendgrid/mail';
 
 export const createMagicLinkToken = async (
-  userId: string
+  userId: number
 ): Promise<MagicLinkToken> => {
   const token = uuidv4();
   const expiresAt = new Date(Date.now() + 1000 * 60 * 15); // 15 minutes

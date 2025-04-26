@@ -1,4 +1,4 @@
-export default function ProgressTracker({ currentStep }) {
+export default function ProgressTracker({ currentStep, setCurrentStep }) {
   const steps = [
     { id: 1, label: 'Name Get-Together' },
     { id: 2, label: 'Poll Locations & Times' }, // Shortened slightly to help on mobile
@@ -24,6 +24,7 @@ export default function ProgressTracker({ currentStep }) {
                   ? 'text-gray-700'
                   : 'text-gray-500'
               }`}
+              onClick={() => setCurrentStep(step.id)}
             >
               {step.label}
             </div>

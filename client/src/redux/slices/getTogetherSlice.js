@@ -36,7 +36,7 @@ const initialState = {
   name: '',
   description: '',
   duration: '',
-
+  eventUuid: '',
   locations: [
     {
       name: 'No Location Selected',

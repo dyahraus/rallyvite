@@ -45,11 +45,23 @@ export const createEventDateWithTimes = async (
     date,
     times,
   });
+
+  // Validate times array
+  if (!times || times.length === 0) {
+    throw new Error('No valid times provided for event date');
+  }
+
   const eventDate = await createEventDate(eventId, locationId, date);
   console.log('Event date created, proceeding with times');
 
+  // Create times and log each one
   const eventTimes = await Promise.all(
-    times.map((time) => createEventTime(eventDate.id, time))
+    times.map(async (time) => {
+      console.log('Creating event time:', time);
+      const eventTime = await createEventTime(eventDate.id, time);
+      console.log('Event time created successfully:', eventTime);
+      return eventTime;
+    })
   );
   console.log('All event times created successfully');
 
@@ -62,6 +74,16 @@ export const getEventDatesForEvent = async (
   const result = await pool.query<EventDate>(
     `SELECT * FROM event_dates WHERE event_id = $1`,
     [eventId]
+  );
+  return result.rows;
+};
+
+export const getTimesForEventDate = async (
+  eventDateId: number
+): Promise<EventTime[]> => {
+  const result = await pool.query<EventTime>(
+    `SELECT * FROM event_times WHERE event_date_id = $1`,
+    [eventDateId]
   );
   return result.rows;
 };

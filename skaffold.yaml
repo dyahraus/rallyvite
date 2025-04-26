@@ -10,6 +10,7 @@ deploy:
       - ./infra/k8s/events-postgres-statefulset.yaml
       - ./infra/k8s/events-postgres-service.yaml
       - ./infra/k8s/client-deployment.yaml
+      - ./infra/k8s/ingress-srv.yaml
 build:
   local:
     push: false

@@ -13,7 +13,10 @@ export default function New() {
   return (
     <div className="h-screen flex flex-col items-center pt-6">
       <h1 className="font-bold text-xl">{name ? name : 'New Rallyvite'}</h1>
-      <ProgressTracker currentStep={currentStep} />
+      <ProgressTracker
+        currentStep={currentStep}
+        setCurrentStep={setCurrentStep}
+      />
       {currentStep === 1 ? (
         <NameGetTogether setCurrentStep={setCurrentStep} />
       ) : currentStep === 2 ? (

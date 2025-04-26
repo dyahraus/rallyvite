@@ -3,16 +3,83 @@ import { useState, useEffect } from 'react';
 import ShareInviteButton from './ShareInviteButton';
 import Image from 'next/image';
 import ThumbsUp from '@/assets/15.png';
+import { useBottomActionBar } from '@/context/BottomActionBarContext';
+import { createAndAppendOrganizer } from '@/api/auth/createAndAppendOrganizer';
+import { useSelector } from 'react-redux';
+import { createInvite } from '@/api/events/createInvite';
 
-export default function GetLinkForm({ getTogetherName }) {
+export default function GetLinkFormGuest() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+1'); // Default to US
   const [repeatInterval, setRepeatInterval] = useState('None');
+  const eventUuid = useSelector((state) => state.getTogether.eventUuid);
+  const getTogetherName = useSelector((state) => state.getTogether.name);
+  const { setBottomAction } = useBottomActionBar();
+
+  useEffect(() => {
+    setBottomAction({
+      label: 'Share',
+      disabled: true,
+      onClick: () => {},
+    });
+  }, []);
+
+  useEffect(() => {
+    setBottomAction({
+      label: 'Share',
+      disabled: !name,
+      onClick: handleShare,
+      textColor: name ? 'text-rallyYellow' : undefined,
+    });
+  }, [name, email, mobileNumber, countryCode]);
+
+  const handleShare = async () => {
+    try {
+      const phone = countryCode + mobileNumber;
+
+      // First create and append the organizer
+      const organizerResult = await createAndAppendOrganizer({
+        name,
+        email,
+        phone,
+        eventUuid,
+      });
+
+      if (!organizerResult || organizerResult.status !== 'SUCCESS') {
+        throw new Error('Failed to create organizer');
+      }
+
+      // Then create the invite
+      const urlToShare = await createInvite({ eventUuid });
+
+      // Try to use the native share API
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Join ${getTogetherName}!`,
+            text: 'Join my Rallyvite event 🎉',
+            url: urlToShare,
+          });
+        } catch (err) {
+          // If share fails, fallback to clipboard
+          await navigator.clipboard.writeText(urlToShare);
+          alert('Link copied to clipboard!');
+        }
+      } else {
+        // If share API not available, use clipboard
+        await navigator.clipboard.writeText(urlToShare);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to create invite. Please try again.');
+    }
+  };
 
   return (
-    <div className="flex w-[90%] flex-col items-center mt-1">
+    <div className="flex w-[90%] flex-col items-center mt-1 relative">
       <h2 className="mb-2 text-2xl font-medium">{getTogetherName}</h2>
       <p className="text-xs font-medium items-center">Be the first to RALLY!</p>
       <form className="mt-4 w-full relative">

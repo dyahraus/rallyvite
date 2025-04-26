@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
 
 export default function GetTogetherDurationForm({
@@ -14,20 +14,28 @@ export default function GetTogetherDurationForm({
   const handleSubmit = (e) => {
     e.preventDefault();
     const duration = openEnded ? 'Open Ended' : `${hours}h ${minutes}m`;
-    onDurationSubmit(duration); // Pass duration back to parent
+    onDurationSubmit(duration);
   };
 
-  // Update BottomAction dynamically whenever duration selection changes
-  useEffect(() => {
+  // Memoize the bottom action update logic
+  const updateBottomAction = useCallback(() => {
     const isValidDuration =
       openEnded || parseInt(hours) > 0 || parseInt(minutes) > 0;
 
     setBottomAction({
       label: 'Next',
-      disabled: !isValidDuration, // Enable only if a valid duration is selected
-      onClick: () => setCurrentStep(2), // Trigger form submission
+      disabled: !isValidDuration,
+      onClick: () => {
+        handleSubmit(new Event('submit'));
+        setCurrentStep(2);
+      },
     });
-  }, [hours, minutes, openEnded, setBottomAction]);
+  }, [hours, minutes, openEnded, setCurrentStep]);
+
+  // Update bottom action only when relevant state changes
+  useEffect(() => {
+    updateBottomAction();
+  }, [hours, minutes, openEnded]);
 
   return (
     <div className="flex w-[90%] flex-col items-center mt-5">

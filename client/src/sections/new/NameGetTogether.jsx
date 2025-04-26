@@ -70,7 +70,6 @@ export default function NameGetTogether({ setCurrentStep }) {
         <GetTogetherDurationForm
           onDurationSubmit={(duration) => {
             dispatch(setDuration(duration));
-            setActiveStep('duration');
             setDurationCompleted(true);
           }}
           setCurrentStep={setCurrentStep}

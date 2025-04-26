@@ -8,6 +8,7 @@ import {
   findLocationByNameAndAddress,
 } from '../services/locationService';
 import { createEventDateWithTimes } from '../services/eventDateService';
+import { createEventLocation } from '../services/eventLocationService';
 
 interface LocationPayload {
   name: string;
@@ -107,6 +108,12 @@ router.post('/api/events/create', async (req: Request, res: Response) => {
           locationId = newLocation.id;
         }
 
+        // Create event-location relationship
+        if (locationId) {
+          console.log('Creating event-location relationship');
+          await createEventLocation(newEvent.id, locationId);
+        }
+
         // Process dates and times for this location
         if (location.dates && Array.isArray(location.dates)) {
           console.log('Processing dates for location:', locationId);
@@ -119,11 +126,23 @@ router.post('/api/events/create', async (req: Request, res: Response) => {
             console.log('Creating event date:', dateData.date);
             // Convert date string to Date object
             const date = new Date(dateData.date);
+            console.log('Date:', date);
+            console.log('Date data:', dateData);
 
-            // Convert times object to array of selected times
+            // Convert times object to array of selected times (only those marked true)
             const selectedTimes = Object.entries(dateData.times)
-              .filter(([_, isSelected]) => isSelected)
-              .map(([time]) => time);
+              .filter(([_, isSelected]) => isSelected === true)
+              .map(([time]) => {
+                // Convert time format from "HH-MM" to "HH:MM"
+                const [hours, minutes] = time.split('-');
+                return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+              });
+            console.log('Selected times:', selectedTimes);
+
+            if (selectedTimes.length === 0) {
+              console.log('No times selected for this date, skipping');
+              continue;
+            }
 
             // Create event date and times
             await createEventDateWithTimes(

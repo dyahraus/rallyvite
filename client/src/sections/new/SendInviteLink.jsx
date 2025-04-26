@@ -1,24 +1,21 @@
-import GetLinkForm from '@/components/new/sendInviteLink/GetLinkForm';
+import GetLinkFormUser from '@/components/new/sendInviteLink/GetLinkFormUser';
+import GetLinkFormGuest from '@/components/new/sendInviteLink/GetLinkFormGuest';
 import RallySummaryForm from '@/components/new/sendInviteLink/RallySummaryForm';
 import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import {useSelector} from 'react-redux';
 
-export default function SendInviteLink({ getTogether, setBottomAction }) {
+export default function SendInviteLink() {
   const [currContent, setCurrContent] = useState('Summary');
+  const currentUser = useSelector((state) => state.user.data);
 
   return (
     <div>
       {currContent === 'Summary' ? (
-        <RallySummaryForm
-          getTogether={getTogether}
-          setCurrContent={setCurrContent}
-          setBottomAction={setBottomAction}
-        />
+        <RallySummaryForm setCurrContent={setCurrContent} />
+      ) : currContent === 'Link' && currentUser ? (
+        <GetLinkFormUser />
       ) : (
-        <GetLinkForm
-          getTogetherName={getTogether.name}
-          setBottomAction={setBottomAction}
-        />
+        <GetLinkFormGuest />
       )}
     </div>
   );

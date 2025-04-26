@@ -27,7 +27,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/app/page.jsx",
-    "src/components/new/pollLocationTime/UserList.jsx"
+    "src/components/new/pollLocationTime/UserList.jsx",
+    "src/api/events/createEvent.js"
   ],
   "exclude": ["node_modules"]
 }

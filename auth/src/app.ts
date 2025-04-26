@@ -6,6 +6,8 @@ import cookieSession from 'cookie-session';
 import { createUserRouter } from './routes/create-user';
 import { currentUserRouter } from './routes/current-user';
 import { NotFoundError } from './errors/not-found-error';
+import { loginUserRouter } from './routes/login-user';
+import { editUserRouter } from './routes/edit-user';
 
 console.log(process.env.SENDGRID_API_KEY);
 const app = express();
@@ -20,6 +22,8 @@ app.use(
 
 app.use(createUserRouter);
 app.use(currentUserRouter);
+app.use(loginUserRouter);
+app.use(editUserRouter);
 
 app.all('*', () => {
   throw new NotFoundError(); // express will capture this and send it off to the errorHandler middleware

@@ -70,3 +70,46 @@ export const normalizePhoneNumber = (
 
   return parsedNumber.number;
 };
+
+// Get a user by ID
+export const findUserById = async (id: number): Promise<User | null> => {
+  const result = await pool.query<User>('SELECT * FROM users WHERE id = $1', [
+    id,
+  ]);
+  return result.rows[0] || null;
+};
+
+// Get a user by UUID
+export const findUserByUuid = async (uuid: string): Promise<User | null> => {
+  const result = await pool.query<User>('SELECT * FROM users WHERE uuid = $1', [
+    uuid,
+  ]);
+  return result.rows[0] || null;
+};
+
+// Update a user by UUID
+export const updateUser = async (
+  uuid: string,
+  updateData: Partial<User>
+): Promise<User> => {
+  const updateFields = Object.keys(updateData)
+    .map((key, index) => `${key} = $${index + 2}`)
+    .join(', ');
+
+  const values = [uuid, ...Object.values(updateData)];
+
+  const query = `
+    UPDATE users 
+    SET ${updateFields}, last_modified = CURRENT_TIMESTAMP
+    WHERE uuid = $1
+    RETURNING *;
+  `;
+
+  const result = await pool.query<User>(query, values);
+
+  if (result.rows.length === 0) {
+    throw new BadRequestError('User not found');
+  }
+
+  return result.rows[0];
+};

@@ -3,9 +3,10 @@ import jwt from 'jsonwebtoken';
 
 interface UserPayload {
   id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
+  uuid: string;
+  email: string | null;
+  is_guest: boolean;
+  sessionToken: string;
 }
 
 // Extend Express's Request interface to include `currentUser` and `session`
@@ -35,7 +36,9 @@ export const currentUser = (
       process.env.JWT_KEY!
     ) as UserPayload;
     req.currentUser = payload;
-  } catch (err) {}
+  } catch (err) {
+    console.error('Error verifying JWT:', err);
+  }
 
   next();
 };

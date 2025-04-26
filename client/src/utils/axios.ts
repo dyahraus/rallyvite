@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api', // optionally set from .env
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://rallyvite.dev/api', // optionally set from .env
   withCredentials: true, // important if using cookies/sessions
   headers: {
     'Content-Type': 'application/json',

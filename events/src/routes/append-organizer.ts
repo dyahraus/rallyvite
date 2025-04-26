@@ -1,29 +1,39 @@
 import express, { Request, Response } from 'express';
 import { BadRequestError } from '../errors/bad-request-error';
+import { addUserToEvent } from '../services/eventService';
+import { findEventByUuid } from '../services/eventService';
+import { findUserByUuid } from '../services/userService';
 
 const router = express.Router();
 
 router.post(
   '/api/events/append-organizer',
   async (req: Request, res: Response) => {
-    const { name, phone, email } = req.body;
+    const { eventUuid, userUuid } = req.body;
 
-    if (!name) {
-      throw new BadRequestError('Name is required');
+    console.log('Event UUID:', eventUuid);
+    console.log('User UUID:', userUuid);
+
+    if (!eventUuid || !userUuid) {
+      throw new BadRequestError('Event UUID and User UUID are required');
     }
 
-    if (phone || email) {
-      // publish an event to create new user, await for a user to be created using KAFKA
-    } else {
-      // publish an event to create a new GUEST user, await
+    try {
+      const event = await findEventByUuid(eventUuid);
+      const user = await findUserByUuid(userUuid);
+      if (!event || !user) {
+        throw new BadRequestError('Event or User could not be found');
+      }
+
+      const eventUser = await addUserToEvent(event.id, user.id, 'organizer');
+      res.status(201).send(eventUser);
+    } catch (error) {
+      if (error instanceof BadRequestError) {
+        throw error;
+      }
+      throw new BadRequestError('Failed to add organizer to event');
     }
   }
 );
 
-// Create a user with a name or phone and email
-
-// if only name then create a temp user
-
-// if phone or email as well create a permanent user
-
-// append user to event as organizer
+export { router as appendOrganizerRouter };

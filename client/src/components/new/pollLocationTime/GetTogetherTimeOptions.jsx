@@ -1,5 +1,6 @@
 'use client';
 import TimeGrid from './TimeGrid';
+import FinalTimeGrid from './FinalTimeGrid';
 import React, { useState, useRef, useEffect } from 'react';
 import DateCarousel from './DateCarousel';
 import UserList from './UserList';
@@ -48,7 +49,7 @@ export default function GetTogetherTimeOptions() {
         handleDateChange={handleDateChange}
       />
       <div className="flex flex-row">
-        <TimeGrid times={times} selectedDate={localSelectedDate} />
+        <FinalTimeGrid times={times} selectedDate={localSelectedDate} />
         <UserList />
       </div>
     </div>

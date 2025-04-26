@@ -7,6 +7,10 @@ import { currentUser } from './middlewares/current-user';
 import { NotFoundError } from './errors/not-found-error';
 import { errorHandler } from './middlewares/error-handler';
 import { createEventRouter } from './routes/create-event';
+import { appendOrganizerRouter } from './routes/append-organizer';
+import { appendParticipantRouter } from './routes/append-participant';
+import { findEventRouter } from './routes/find-event';
+import { inviteRouter } from './routes/invite';
 
 const app = express();
 
@@ -21,7 +25,11 @@ app.use(
 
 app.use(currentUser);
 
+app.use(inviteRouter);
 app.use(createEventRouter);
+app.use(appendOrganizerRouter);
+app.use(appendParticipantRouter);
+app.use(findEventRouter);
 
 app.all('*', () => {
   throw new NotFoundError(); // express will capture this and send it off to the errorHandler middleware

@@ -12,10 +12,8 @@ import BottomActionBar from '@/components/navigation/BottomActionBar';
 import New from '@/sections/new/New';
 import Upcoming from '@/sections/upcoming/Upcoming';
 import Highlights from '@/sections/highlights/Highlights';
-
-// Placeholder components for unimplemented sections
-const RSVP = () => <div className="p-4">RSVP Section (Coming Soon)</div>;
-const Me = () => <div className="p-4">Me Section (Coming Soon)</div>;
+import Me from '@/sections/me/Me';
+import RSVP from '@/sections/rsvp/RSVP';
 
 function HomeContent() {
   const dispatch = useDispatch();

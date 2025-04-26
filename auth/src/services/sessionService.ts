@@ -3,7 +3,7 @@ import { Session } from '../models/session';
 import { v4 as uuidv4 } from 'uuid';
 
 export const createSession = async (
-  userId: string,
+  userId: number,
   deviceId: string | null,
   sessionType = 'web'
 ): Promise<Session> => {

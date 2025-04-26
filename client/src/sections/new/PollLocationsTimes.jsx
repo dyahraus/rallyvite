@@ -19,7 +19,7 @@ export default function PollLocationsTimes({ setCurrentStep }) {
   const [activeStep, setActiveStep] = useState('location');
   const { setBottomAction } = useBottomActionBar();
   const [locationCompleted, setLocationCompleted] = useState(false);
-  const [timesCompleted, setTimesCompleted] = useState(false);
+  const [timesCompleted, setTimesCompleted] = useState(true);
   const { locations } = useSelector((state) => state.getTogether);
 
   useEffect(() => {

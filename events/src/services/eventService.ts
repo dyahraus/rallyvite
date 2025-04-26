@@ -44,9 +44,10 @@ export const findEventByUuid = async (uuid: string): Promise<Event> => {
   if (!uuidValidate(uuid)) {
     throw new Error('Invalid UUID format');
   }
-  const result = await pool.query<Event>('SELECT * FROM events WHERE id = $1', [
-    uuid,
-  ]);
+  const result = await pool.query<Event>(
+    'SELECT * FROM events WHERE uuid = $1',
+    [uuid]
+  );
   if (!result.rows[0]) {
     throw new NotFoundError();
   }
@@ -59,7 +60,7 @@ export const addUserToEvent = async (
   role: string = 'participant'
 ): Promise<EventUser> => {
   // First check if the event exists
-  await findEventById(eventId);
+  const event = await findEventById(eventId);
 
   // Check if user is already associated with the event
   const existingResult = await pool.query<EventUser>(
