@@ -1,11 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   PlusCircleIcon,
 } from '@heroicons/react/24/outline';
+import AddLocationOption from './AddLocationOption';
+import { useDispatch } from 'react-redux';
+import { setSelectedLocation } from '@/redux/slices/getTogetherSlice';
 
-export default function LocationCarousel({ locations = [] }) {
+export default function LocationCarousel({
+  setActiveStep,
+  locations = [],
+  onLocationSubmit,
+  expanded,
+  setExpanded,
+}) {
+  const dispatch = useDispatch();
+
   // Filter out 'No Location Selected' locations and ensure location objects are valid
   const validLocations = locations.filter(
     (location) =>
@@ -49,8 +60,15 @@ export default function LocationCarousel({ locations = [] }) {
 
   const visibleLocations = getVisibleLocations();
 
+  useEffect(() => {
+    const centerLocation = validLocations[currentIndex];
+    if (centerLocation) {
+      dispatch(setSelectedLocation(centerLocation));
+    }
+  }, [currentIndex, validLocations]);
+
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="w-full flex flex-col items-center px-4">
       <div className="flex justify-between items-center">
         {/* Left Arrow - Only show if more than one location */}
         {validLocations.length > 1 && (
@@ -60,12 +78,15 @@ export default function LocationCarousel({ locations = [] }) {
         )}
 
         {/* Location Information */}
+
         <div className="flex justify-center items-center space-x-4 flex-1">
           {visibleLocations.map((location, index) => (
             <div
               key={index}
-              className={`text-center ${
-                index === 1 || validLocations.length === 1 ? 'font-bold' : ''
+              className={`text-center transition-all duration-300 ${
+                index === 1 || validLocations.length === 1
+                  ? 'font-bold'
+                  : 'text-gray-400 text-xs opacity-60'
               }`}
             >
               <h3 className="text-lg">{location?.name || ''}</h3>
@@ -81,10 +102,25 @@ export default function LocationCarousel({ locations = [] }) {
         )}
       </div>
 
-      <div className="flex flex-col items-center justify-center mt-2 text-rallyBlue">
-        <PlusCircleIcon className="w-10 h-10 stroke-1" />
-        <span className="ml-2 text-sm">Add Another Location Option</span>
-      </div>
+      {!expanded ? (
+        <div
+          className="flex flex-col items-center justify-center mt-2 text-rallyBlue cursor-pointer"
+          onClick={() => {
+            setExpanded(true);
+            setActiveStep('addLoc');
+          }}
+        >
+          <PlusCircleIcon className="w-10 h-10 stroke-1" />
+          <span className="ml-2 text-sm">Add Another Location Option</span>
+        </div>
+      ) : (
+        <div className="flex w-full justify-center">
+          <AddLocationOption
+            setExpanded={setExpanded}
+            onLocationSubmit={onLocationSubmit}
+          />
+        </div>
+      )}
     </div>
   );
 }

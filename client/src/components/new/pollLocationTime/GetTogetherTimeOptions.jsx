@@ -7,7 +7,7 @@ import UserList from './UserList';
 import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedDate } from '../../../redux/slices/getTogetherSlice';
 
-export default function GetTogetherTimeOptions({ setCurrentStep }) {
+export default function GetTogetherTimeOptions({ setCurrentStep, activeStep }) {
   const dispatch = useDispatch();
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
 
@@ -55,6 +55,7 @@ export default function GetTogetherTimeOptions({ setCurrentStep }) {
           times={times}
           selectedDate={localSelectedDate}
           setCurrentStep={setCurrentStep}
+          activeStep={activeStep}
         />
         <UserList />
       </div>

@@ -11,6 +11,7 @@ import { EventDate } from '../models/eventDate';
 import { EventUser } from '../models/eventUser';
 import { Location } from '../models/location';
 import { EventTime } from '../models/eventTime';
+import { User } from '../models/user';
 
 interface EventWithDetails {
   id: number;
@@ -27,7 +28,7 @@ interface EventWithDetails {
       }[];
     }[];
   })[];
-  users: EventUser[];
+  users: User[];
 }
 
 const router = express.Router();

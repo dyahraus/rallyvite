@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import TextBubble from '@/assets/22-ofcpy.PNG';
 import LocationCarousel from './LocationCarousel';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
 import { createEvent } from '@/api/events/createEvent';
@@ -14,12 +14,19 @@ export default function RallySummaryForm({ setCurrContent }) {
   const description = getTogether.description;
   const duration = getTogether.duration;
   const locations = getTogether.locations;
+  const selectedLocation = useSelector(
+    (state) => state.getTogether.selectedLocation
+  );
   const dispatch = useDispatch();
 
   const { setBottomAction } = useBottomActionBar();
 
-  const blocks = getFormattedDateTimeBlocks(getTogether);
-  console.log(blocks);
+  const blocks = useMemo(() => {
+    const allBlocks = getFormattedDateTimeBlocks(getTogether);
+    return allBlocks.filter(
+      (block) => block.location === selectedLocation?.name
+    );
+  }, [getTogether, selectedLocation]);
 
   useEffect(() => {
     {
@@ -47,26 +54,36 @@ export default function RallySummaryForm({ setCurrContent }) {
 
   return (
     <div>
-      <p className="text-center mb-3">Your Get-Together Details</p>
-      <h2 className="text-2xl text-center mb-2">{name}</h2>
-      <div className="mb-3 relative inline-block">
-        <Image src={TextBubble} width={300} />
-        <h2 className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg px-6 py-4 w-[300px] text-white">
-          {description}
-        </h2>
+      <p className="text-center mb-3 text-base md:text-xl">
+        Your Get-Together Details
+      </p>
+
+      <h2 className="text-2xl md:text-4xl text-center mb-2">{name}</h2>
+
+      <div className="mb-3 relative w-full flex justify-center items-center">
+        <div className="relative">
+          <Image src={TextBubble} width={300} height={200} />
+          <h2
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+                 text-lg md:text-2xl px-6 py-4 w-[300px] text-white text-center"
+          >
+            {description}
+          </h2>
+        </div>
       </div>
+
       {duration.trim() ? (
-        <p className="text-lg mb-5">Let's get together for ~{duration} @</p>
+        <p className="text-lg md:text-2xl mb-5 flex items-center justify-center px-4 py-2">
+          Let's get together for ~{duration} @
+        </p>
       ) : null}
 
       <div className="mt-4">
-        {/* Added margin-top to separate carousel from other content */}
         <LocationCarousel locations={locations} />
         {blocks.map(({ location, date, time }, i) => (
-          <div key={i} className="mb-4 text-center">
-            <p className="font-semibold">{location}</p>
-            <p>{date}</p>
-            <p className="text-lg font-medium">{time}</p>
+          <div key={i} className="mb-4 mt-4 text-center">
+            <p className="font-bold text-lg md:text-2xl">{date}</p>
+            <p className="text-lg md:text-xl font-medium">{time}</p>
           </div>
         ))}
       </div>

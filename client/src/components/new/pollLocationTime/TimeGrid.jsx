@@ -6,14 +6,35 @@ import { useGesture } from '@use-gesture/react';
 import { animated, useSpring } from '@react-spring/web';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
 
-export default function TimeGrid({ times, selectedDate, setCurrentStep }) {
+export default function TimeGrid({
+  times,
+  selectedDate,
+  setCurrentStep,
+  activeStep,
+}) {
+  console.log(
+    '[DATE_DEBUG] TimeGrid render - Current date:',
+    selectedDate?.toISOString()
+  );
+
   const dispatch = useDispatch();
+  const selectedLocation = useSelector(
+    (state) => state.getTogether.selectedLocation
+  );
+  console.log('selectedLocation: ', selectedLocation);
+
   const [selectedSlots, setSelectedSlots] = useState(times);
   const prevDateRef = useRef(selectedDate);
+  const prevLocationRef = useRef(selectedLocation);
+  console.log('prevLocationRef: ', prevLocationRef);
   const selectedSlotsRef = useRef(selectedSlots);
 
   useEffect(() => {
     selectedSlotsRef.current = selectedSlots;
+    console.log('[DATE_DEBUG] selectedSlots updated:', {
+      currentDate: selectedDate?.toISOString(),
+      slots: selectedSlots,
+    });
   }, [selectedSlots]);
 
   console.log('TimeGrid received times:', times);
@@ -21,38 +42,95 @@ export default function TimeGrid({ times, selectedDate, setCurrentStep }) {
 
   const { setBottomAction } = useBottomActionBar();
 
-  const handleTimeSubmission = (dateToSave) => {
-    console.log('Submitting times to Redux:', selectedSlots);
+  const handleTimeSubmission = (
+    dateToSave,
+    slotsToSave = selectedSlotsRef.current,
+    locationName
+  ) => {
+    console.log('[DATE_DEBUG] Submitting times:', {
+      dateBeingSaved: dateToSave?.toISOString(),
+      currentDate: selectedDate?.toISOString(),
+      slots: slotsToSave,
+      locationName,
+      currentLocation: selectedLocation?.name,
+    });
     dispatch(
       setTimes({
         selectedDate: dateToSave.toISOString(),
-        selectedSlots,
+        selectedSlots: slotsToSave,
+        locationName,
       })
     );
   };
 
-  // Update selectedSlots when times changes
+  // Save previous date's slots when date or location changes
   useEffect(() => {
-    console.log('TimeGrid useEffect triggered with new times:', times);
-    setSelectedSlots(times);
-  }, [times]);
+    console.log('[DATE_DEBUG] Date/Location change detected:', {
+      prevDate: prevDateRef.current?.toISOString(),
+      newDate: selectedDate?.toISOString(),
+      hasDateChanged: prevDateRef.current !== selectedDate,
+      hasLocationChanged:
+        prevLocationRef.current?.name !== selectedLocation?.name,
+      currentSlots: selectedSlots,
+      prevLocation: prevLocationRef.current?.name,
+      newLocation: selectedLocation?.name,
+    });
 
-  // Save previous date's slots when date changes
-  useEffect(() => {
-    if (prevDateRef.current && prevDateRef.current !== selectedDate) {
-      handleTimeSubmission(prevDateRef.current);
+    // Save slots for previous date/location combination
+    if (prevDateRef.current && prevLocationRef.current) {
+      console.log('[DATE_DEBUG] Saving previous state:', {
+        prevDate: prevDateRef.current.toISOString(),
+        prevLocation: prevLocationRef.current.name,
+        slotsBeingSaved: selectedSlotsRef.current,
+      });
+      handleTimeSubmission(
+        prevDateRef.current,
+        selectedSlotsRef.current,
+        prevLocationRef.current.name
+      );
     }
+
+    // Load slots for new date/location combination
+    setSelectedSlots(times);
+    selectedSlotsRef.current = times;
+
+    // Update refs
     prevDateRef.current = selectedDate;
-  }, [selectedDate]);
+    prevLocationRef.current = selectedLocation;
+  }, [selectedDate, selectedLocation]);
+
+  // Separate effect to handle times updates
+  useEffect(() => {
+    if (selectedDate && selectedLocation) {
+      console.log('[DATE_DEBUG] Times prop changed:', {
+        newTimes: times,
+        currentDate: selectedDate?.toISOString(),
+        currentLocation: selectedLocation?.name,
+      });
+      setSelectedSlots(times);
+      selectedSlotsRef.current = times;
+    }
+  }, [times, selectedDate, selectedLocation]);
 
   // Only update local state when user makes changes
   const toggleSlotSelection = (hour, minute) => {
     const key = slotKey(hour, minute);
-    console.log('Selected slot:', key);
-    setSelectedSlots((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    console.log('[SLOT_DEBUG] Toggling slot:', {
+      hour,
+      minute,
+      key,
+      currentValue: selectedSlots[key],
+      newValue: !selectedSlots[key],
+      allSelectedSlots: selectedSlots,
+    });
+    setSelectedSlots((prev) => {
+      const newSlots = {
+        ...prev,
+        [key]: !prev[key],
+      };
+      console.log('[SLOT_DEBUG] New slots state:', newSlots);
+      return newSlots;
+    });
   };
 
   const gridRef = useRef(null);
@@ -60,8 +138,6 @@ export default function TimeGrid({ times, selectedDate, setCurrentStep }) {
   const dragTimeout = useRef(null);
   const [scrollRatio, setScrollRatio] = useState(0);
   const draggedSlots = useRef(new Set());
-  const isInitialMount = useRef(true);
-  const hasInitialized = useRef(false);
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = [0, 15, 30, 45];
@@ -97,10 +173,8 @@ export default function TimeGrid({ times, selectedDate, setCurrentStep }) {
     if (!target) return;
 
     const [h, m] = target.dataset.slot.split('-').map(Number);
-    console.log('Pointer down on slot:', { hour: h, minute: m });
 
     dragTimeout.current = setTimeout(() => {
-      console.log('Starting drag selection');
       setIsDraggingSlots(true);
       draggedSlots.current = new Set();
       const key = slotKey(h, m);
@@ -117,14 +191,12 @@ export default function TimeGrid({ times, selectedDate, setCurrentStep }) {
     const dataSlot = target?.getAttribute('data-slot');
     if (dataSlot && !draggedSlots.current.has(dataSlot)) {
       const [h, m] = dataSlot.split('-').map(Number);
-      console.log('Dragging over slot:', { hour: h, minute: m });
       draggedSlots.current.add(dataSlot);
       toggleSlotSelection(h, m);
     }
   };
 
   const handlePointerUp = () => {
-    console.log('Pointer up, ending drag selection');
     clearTimeout(dragTimeout.current);
     setIsDraggingSlots(false);
   };
@@ -141,25 +213,41 @@ export default function TimeGrid({ times, selectedDate, setCurrentStep }) {
   });
 
   useEffect(() => {
-    console.log('COMPONENT RERENDERED');
+    console.log('[BOTTOM_ACTION_DEBUG] Setting up bottom action:', {
+      selectedDate: selectedDate?.toISOString(),
+      selectedLocation: selectedLocation?.name,
+      currentSlots: selectedSlots,
+      selectedSlotsRef: selectedSlotsRef.current,
+    });
+
     setBottomAction({
       label: 'Continue',
       disabled: false,
       onClick: () => {
-        console.log(
-          'BottomAction clicked, using latest selected slots:',
-          selectedSlotsRef.current
-        );
+        console.log('[BOTTOM_ACTION_DEBUG] Bottom action clicked:', {
+          selectedDate: selectedDate?.toISOString(),
+          selectedSlots: selectedSlotsRef.current,
+          locationName: selectedLocation.name,
+        });
+
         dispatch(
           setTimes({
-            selectedDate: prevDateRef.current.toISOString(),
+            selectedDate: selectedDate.toISOString(),
             selectedSlots: selectedSlotsRef.current,
+            locationName: selectedLocation.name,
           })
         );
+
         setCurrentStep(3);
       },
     });
-  }, [selectedDate]);
+  }, [selectedDate, selectedLocation]);
+
+  // Update the ref whenever selectedSlots changes
+  useEffect(() => {
+    console.log('[SLOT_DEBUG] Updating selectedSlotsRef:', selectedSlots);
+    selectedSlotsRef.current = selectedSlots;
+  }, [selectedSlots]);
 
   return (
     <div className="relative flex w-[60%] max-w-md h-96 mt-4 shadow-sm">

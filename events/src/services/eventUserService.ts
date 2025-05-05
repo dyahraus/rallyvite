@@ -1,5 +1,6 @@
 import pool from '../config/db';
 import { EventUser } from '../models/eventUser';
+import { User } from '../models/user';
 
 export const addUserToEvent = async (
   eventUser: Omit<EventUser, 'dateCreated'>
@@ -14,8 +15,11 @@ export const addUserToEvent = async (
 };
 
 export const getUsersForEvent = async (eventId: number) => {
-  const result = await pool.query<EventUser>(
-    `SELECT * FROM events_users WHERE event_id = $1`,
+  const result = await pool.query<User>(
+    `SELECT u.uuid, u.name, u.email, u.phone, u.is_guest, u.profile_picture_url
+     FROM events_users eu
+     JOIN users u ON eu.user_id = u.id
+     WHERE eu.event_id = $1`,
     [eventId]
   );
   return result.rows;

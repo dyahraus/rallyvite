@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { useDispatch } from 'react-redux';
+import { setSelectedLocation } from '@/redux/slices/getTogetherSlice';
 
 export default function LocationCarousel({ locations = [] }) {
+  const dispatch = useDispatch();
   // Filter out 'No Location Selected' locations and ensure location objects are valid
   const validLocations = locations.filter(
     (location) =>
@@ -13,18 +16,32 @@ export default function LocationCarousel({ locations = [] }) {
 
   const [currentIndex, setCurrentIndex] = useState(1); // Start with the second item as the center one.
 
+  useEffect(() => {
+    if (validLocations.length > 0) {
+      dispatch(setSelectedLocation(validLocations[currentIndex]));
+    }
+  }, [validLocations, currentIndex]);
+
   const goToNext = () => {
     setCurrentIndex((prevIndex) => {
-      if (prevIndex === validLocations.length - 1) return 0; // Loop back to the start
-      return prevIndex + 1;
+      const newIndex =
+        prevIndex === validLocations.length - 1 ? 0 : prevIndex + 1;
+      dispatch(setSelectedLocation(validLocations[newIndex]));
+      return newIndex;
     });
   };
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => {
-      if (prevIndex === 0) return validLocations.length - 1; // Loop to the end
-      return prevIndex - 1;
+      const newIndex =
+        prevIndex === 0 ? validLocations.length - 1 : prevIndex - 1;
+      dispatch(setSelectedLocation(validLocations[newIndex]));
+      return newIndex;
     });
+  };
+
+  const handleLocationClick = (location) => {
+    dispatch(setSelectedLocation(location));
   };
 
   const getVisibleLocations = () => {
@@ -60,9 +77,12 @@ export default function LocationCarousel({ locations = [] }) {
           {visibleLocations.map((location, index) => (
             <div
               key={index}
-              className={`text-center ${
-                index === 1 || validLocations.length === 1 ? 'font-bold' : ''
+              className={`text-center cursor-pointer ${
+                index === 1 || validLocations.length === 1
+                  ? 'font-semibold text-rallyBlue text-sm'
+                  : 'text-gray-400 text-xs opacity-60'
               }`}
+              onClick={() => handleLocationClick(location)}
             >
               <h3 className="text-lg">{location?.name || ''}</h3>
             </div>

@@ -117,10 +117,10 @@ export default function DateCarousel({
                 className={`flex flex-col items-center justify-center w-12 h-14 rounded-lg ${
                   isSelected
                     ? 'bg-rallyBlue text-white'
-                    : isCurrent
-                    ? 'text-rallyBlue font-semibold'
                     : isAvailable
                     ? 'bg-rallyYellow text-black'
+                    : isCurrent
+                    ? 'text-rallyBlue font-semibold'
                     : 'text-gray-700 opacity-50 cursor-not-allowed'
                 }`}
               >

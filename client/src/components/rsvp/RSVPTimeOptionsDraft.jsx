@@ -2,13 +2,14 @@
 import RSVPTimeGrid from './RSVPTimeGridDraft';
 import RSVPDateCarousel from './RSVPDateCarousel';
 import React, { useState, useRef, useEffect } from 'react';
-import UserList from '@/components/new/pollLocationTime/UserList';
+import RSVPUserList from '@/components/rsvp/RSVPUserList';
 import { useSelector, useDispatch } from 'react-redux';
 
 export default function RSVPTimeOptions({
   location,
   setEvent,
   setTimeSelections,
+  event,
 }) {
   console.log('[RSVPTimeOptions] Initial props:', {
     location,
@@ -16,6 +17,7 @@ export default function RSVPTimeOptions({
   });
 
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
+  const prevDateRef = useRef(localSelectedDate);
 
   const locationDates = location.dates.map((d) => new Date(d.date));
   console.log('[RSVPTimeOptions] Available location dates:', locationDates);
@@ -76,6 +78,21 @@ export default function RSVPTimeOptions({
     });
   };
 
+  // Save previous date's selections when date changes
+  useEffect(() => {
+    if (prevDateRef.current && prevDateRef.current !== localSelectedDate) {
+      console.log('[Date Change Effect] Date changed, saving previous date:', {
+        previousDate: prevDateRef.current,
+        newDate: localSelectedDate,
+      });
+      handleTimeSelection({
+        selectedDate: prevDateRef.current.toISOString(),
+        selectedTimes: timeSelections[prevDateRef.current.toISOString()] || [],
+      });
+    }
+    prevDateRef.current = localSelectedDate;
+  }, [localSelectedDate]);
+
   const EMPTY_TIMES = {};
 
   const getOrganizerTimes = (location) => {
@@ -122,17 +139,11 @@ export default function RSVPTimeOptions({
     organizerTimes
   );
 
-  // Get the location and selected date times from Redux
+  // Get the user's selections for the current date
   const getUserTimes = (location) => {
-    // Normalize the date to midnight UTC for comparison
     const normalizedDate = new Date(localSelectedDate);
     normalizedDate.setUTCHours(0, 0, 0, 0);
     const normalizedDateString = normalizedDate.toISOString();
-
-    console.log('[RSVPTimeOptions] Finding user times for date:', {
-      normalizedDateString,
-      locationDates: location.dates,
-    });
 
     const date = location?.dates.find((d) => {
       const existingDate = new Date(d.date);
@@ -140,10 +151,7 @@ export default function RSVPTimeOptions({
       return existingDate.toISOString() === normalizedDateString;
     });
 
-    console.log('[RSVPTimeOptions] Found date object for user times:', date);
-    const userTimes = date?.userTimes || EMPTY_TIMES;
-    console.log('[RSVPTimeOptions] User times:', userTimes);
-    return userTimes;
+    return date?.userSelectedTimes || EMPTY_TIMES;
   };
 
   const userTimes = getUserTimes(location);
@@ -169,7 +177,7 @@ export default function RSVPTimeOptions({
           selectedDate={localSelectedDate}
           onTimeSelection={handleTimeSelection}
         />
-        {/* <UserList /> */}
+        <RSVPUserList event={event} />
       </div>
     </div>
   );

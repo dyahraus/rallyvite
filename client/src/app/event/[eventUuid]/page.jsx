@@ -11,8 +11,21 @@ import { openInvite } from '@/api/events/openInvite';
 import { BottomActionBarProvider } from '@/context/BottomActionBarContext';
 import BottomActionBar from '@/components/navigation/BottomActionBar';
 
-const RSVPSection = ({ event, setEvent, currentIndex, setCurrentIndex }) => {
-  if (!event?.locations?.length) return null;
+const RSVPSection = ({
+  event,
+  setEvent,
+  currentIndex,
+  setCurrentIndex,
+  setTimeSelections,
+}) => {
+  // Filter out 'No Location Selected' locations and ensure location objects are valid
+  const validLocations =
+    event?.locations?.filter(
+      (location) =>
+        location && location.name && location.name !== 'No Location Selected'
+    ) || [];
+
+  if (!validLocations.length) return null;
 
   return (
     <>
@@ -20,11 +33,15 @@ const RSVPSection = ({ event, setEvent, currentIndex, setCurrentIndex }) => {
       <RSVPLocationCarousel
         currentIndex={currentIndex}
         setCurrentIndex={setCurrentIndex}
-        locations={event.locations}
+        locations={validLocations}
       />
       <div className="flex w-[90%] flex-col items-center mt-5">
-        <h2 className="mb-2">Get-Together Time Option(s)</h2>
-        <RSVPTimeOptions setEvent={setEvent} location={event.locations[0]} />
+        <RSVPTimeOptions
+          setEvent={setEvent}
+          location={validLocations[currentIndex]}
+          setTimeSelections={setTimeSelections}
+          event={event}
+        />
       </div>
     </>
   );
@@ -40,10 +57,6 @@ export default function EventPage() {
   const [currentIndex, setCurrentIndex] = useState(1);
 
   const [timeSelections, setTimeSelections] = useState({});
-  console.log(
-    '[RSVPTimeOptions] Initial localSelectedDate:',
-    localSelectedDate
-  );
 
   useEffect(() => {
     let isMounted = true;
@@ -99,17 +112,20 @@ export default function EventPage() {
 
   return (
     <BottomActionBarProvider>
-      <div className="h-screen flex flex-col items-center pt-6">
+      <div className="min-h-screen flex flex-col items-center pt-6 pb-[64px]">
         {currentStep === 1 && (
           <RSVPSection
             event={event}
             setEvent={setEvent}
             currentIndex={currentIndex}
             setCurrentIndex={setCurrentIndex}
+            setTimeSelections={setTimeSelections}
           />
         )}
-        <BottomActionBar />
       </div>
+
+      {/* Fixed bottom bar, outside scrolling container */}
+      <BottomActionBar className="fixed bottom-0 w-full " />
     </BottomActionBarProvider>
   );
 }

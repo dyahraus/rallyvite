@@ -103,8 +103,10 @@ export default function LocationCarousel({
             return (
               <div
                 key={index}
-                className={`text-center ${
-                  index === 1 || validLocations.length === 1 ? 'font-bold' : ''
+                className={`text-center cursor-pointer ${
+                  index === 1 || validLocations.length === 1
+                    ? 'font-semibold text-rallyBlue text-sm'
+                    : 'text-gray-400 text-xs opacity-60'
                 }`}
               >
                 <h3 className="text-lg">{location?.name || ''}</h3>
@@ -119,11 +121,6 @@ export default function LocationCarousel({
             <ChevronRightIcon className="h-6 w-6 text-rallyBlue" />
           </button>
         )}
-      </div>
-
-      <div className="flex flex-col items-center justify-center mt-2 text-rallyBlue">
-        <PlusCircleIcon className="w-10 h-10 stroke-1" />
-        <span className="ml-2 text-sm">Add Another Location Option</span>
       </div>
     </div>
   );

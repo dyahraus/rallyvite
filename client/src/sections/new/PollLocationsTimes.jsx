@@ -15,6 +15,7 @@ import { useBottomActionBar } from '@/context/BottomActionBarContext';
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export default function PollLocationsTimes({ setCurrentStep }) {
+  const [expanded, setExpanded] = useState(false);
   const dispatch = useDispatch();
   const [activeStep, setActiveStep] = useState('location');
   const { setBottomAction } = useBottomActionBar();
@@ -58,7 +59,20 @@ export default function PollLocationsTimes({ setCurrentStep }) {
     }
 
     if (locationCompleted) {
-      return <LocationCarousel locations={locations} />;
+      return (
+        <LocationCarousel
+          expanded={expanded}
+          setExpanded={setExpanded}
+          setActiveStep={setActiveStep}
+          locations={locations}
+          onLocationSubmit={(locationData) => {
+            dispatch(setLocation(locationData));
+            dispatch(setSelectedLocation(locationData));
+            setLocationCompleted(true);
+            setActiveStep('times');
+          }}
+        />
+      );
     }
 
     return (
@@ -77,11 +91,17 @@ export default function PollLocationsTimes({ setCurrentStep }) {
     <>
       {renderLocationSection()}
       {activeStep === 'times' ? (
-        <GetTogetherTimeOptions setCurrentStep={setCurrentStep} />
+        <GetTogetherTimeOptions
+          setCurrentStep={setCurrentStep}
+          activeStep={activeStep}
+        />
       ) : (
         <CollapsedSummary
           label="Get-Together Time Option(s)"
-          onEdit={() => setActiveStep('times')}
+          onEdit={() => {
+            setActiveStep('times');
+            setExpanded(false);
+          }}
           isCompleted={timesCompleted}
         />
       )}

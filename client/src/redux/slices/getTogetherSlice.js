@@ -168,19 +168,24 @@ const getTogetherSlice = createSlice({
       }
     },
     setTimes: (state, action) => {
-      const { selectedDate, selectedSlots } = action.payload;
-      console.log('setTimes reducer called with:', {
+      const { selectedDate, selectedSlots, locationName } = action.payload;
+      console.log('[REDUX_DEBUG] setTimes reducer called with:', {
         selectedDate,
         selectedSlots,
+        locationName,
+        currentLocations: state.locations.map((loc) => ({
+          name: loc.name,
+          dates: loc.dates.map((d) => d.date),
+        })),
       });
 
       // Find the location that matches selectedLocation
       const locationIndex = state.locations.findIndex(
-        (location) => location.name === state.selectedLocation.name
+        (location) => location.name === locationName
       );
 
       if (locationIndex === -1) {
-        console.log('Location not found');
+        console.log('[REDUX_DEBUG] Location not found:', locationName);
         return;
       }
 
@@ -189,26 +194,44 @@ const getTogetherSlice = createSlice({
       normalizedDate.setUTCHours(0, 0, 0, 0);
       const normalizedDateString = normalizedDate.toISOString();
 
+      console.log('[REDUX_DEBUG] Normalized date:', {
+        original: selectedDate,
+        normalized: normalizedDateString,
+      });
+
       // Find or create the date entry
       const dateIndex = state.locations[locationIndex].dates.findIndex(
         (date) => {
           const existingDate = new Date(date.date);
           existingDate.setUTCHours(0, 0, 0, 0);
-          return existingDate.toISOString() === normalizedDateString;
+          const existingDateString = existingDate.toISOString();
+          console.log('[REDUX_DEBUG] Comparing dates:', {
+            existing: existingDateString,
+            normalized: normalizedDateString,
+            matches: existingDateString === normalizedDateString,
+          });
+          return existingDateString === normalizedDateString;
         }
       );
 
       if (dateIndex === -1) {
         // Create new date entry
+        console.log('[REDUX_DEBUG] Creating new date entry:', {
+          date: normalizedDateString,
+          times: selectedSlots,
+        });
         state.locations[locationIndex].dates.push({
           date: normalizedDateString,
           times: selectedSlots,
         });
-        console.log('Created new date entry with times:', selectedSlots);
       } else {
         // Update existing date's times
+        console.log('[REDUX_DEBUG] Updating existing date entry:', {
+          dateIndex,
+          oldTimes: state.locations[locationIndex].dates[dateIndex].times,
+          newTimes: selectedSlots,
+        });
         state.locations[locationIndex].dates[dateIndex].times = selectedSlots;
-        console.log('Updated existing date entry with times:', selectedSlots);
       }
     },
     setSelectedLocation: (state, action) => {

@@ -9,6 +9,7 @@ import { getEventDatesForEvent } from '../services/eventDateService';
 import { getTimesForEventDate } from '../services/eventDateService';
 import { getLocationsForEvent } from '../services/eventLocationService';
 import { getUsersForEvent } from '../services/eventUserService';
+import { User } from '../models/user';
 
 interface EventWithDetails extends Event {
   role: string;
@@ -21,7 +22,7 @@ interface EventWithDetails extends Event {
       }[];
     }[];
   })[];
-  users: EventUser[];
+  users: User[];
 }
 
 const router = express.Router();

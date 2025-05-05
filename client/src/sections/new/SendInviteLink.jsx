@@ -2,7 +2,7 @@ import GetLinkFormUser from '@/components/new/sendInviteLink/GetLinkFormUser';
 import GetLinkFormGuest from '@/components/new/sendInviteLink/GetLinkFormGuest';
 import RallySummaryForm from '@/components/new/sendInviteLink/RallySummaryForm';
 import { useState } from 'react';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 
 export default function SendInviteLink() {
   const [currContent, setCurrContent] = useState('Summary');
@@ -13,7 +13,7 @@ export default function SendInviteLink() {
       {currContent === 'Summary' ? (
         <RallySummaryForm setCurrContent={setCurrContent} />
       ) : currContent === 'Link' && currentUser ? (
-        <GetLinkFormUser />
+        <GetLinkFormUser user={currentUser} />
       ) : (
         <GetLinkFormGuest />
       )}

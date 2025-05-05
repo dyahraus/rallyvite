@@ -4,10 +4,11 @@ import ShareInviteButton from './ShareInviteButton';
 import Image from 'next/image';
 import ThumbsUp from '@/assets/15.png';
 
-export default function GetLinkFormUser({ getTogetherName }) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
+export default function GetLinkFormUser({ user, getTogetherName }) {
+  console.log(user);
+  const [name, setName] = useState(user.name || '');
+  const [email, setEmail] = useState(user.email || '');
+  const [mobileNumber, setMobileNumber] = useState(user.phone || '');
   const [countryCode, setCountryCode] = useState('+1'); // Default to US
   const [repeatInterval, setRepeatInterval] = useState('None');
 

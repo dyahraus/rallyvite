@@ -8,6 +8,7 @@ import { editUser } from '@/api/auth/editUser';
 import { setUser } from '@/redux/slices/userSlice';
 import { createUser } from '@/api/auth/createUser';
 import { findUserEvents } from '@/api/events/getUserEvents';
+import EventCarousel from '@/components/me/EventCarousel';
 
 export default function Me() {
   const dispatch = useDispatch();
@@ -17,6 +18,8 @@ export default function Me() {
   const [email, setEmail] = useState(user?.email || '');
   const [mobileNumber, setMobileNumber] = useState(user?.phone || '');
   const [countryCode, setCountryCode] = useState('+1'); // Default to US
+  const [events, setEvents] = useState(null);
+  const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
   const { setBottomAction } = useBottomActionBar();
 
@@ -89,32 +92,36 @@ export default function Me() {
 
   useEffect(() => {
     if (user) {
-      getUserEvents().then((events) => {
-        setNumGroups(events.length);
+      getUserEvents().then((result) => {
+        setEvents(result); // <- first set the full events array
+        console.log('HERE ARE THE EVENTS', result);
+        setNumGroups(result.length); // <- then count and set the number of groups
       });
     } else {
+      setEvents(null);
       setNumGroups(0);
     }
   }, [user]);
 
   return (
-    <div className="h-screen flex flex-col items-center pt-6">
-      <h1 className="font-bold text-lg">Me</h1>
-      <Image
-        src={HolderPFP}
-        alt="User"
-        width={48}
-        height={48}
-        className="rounded-full object-cover"
-      />
+    <div className="h-screen flex flex-col items-center px-6 pt-6">
+      <h1 className="font-bold text-lg md:text-2xl">Me</h1>
+      <div className="relative mt-6 w-20 h-20 md:w-28 md:h-28">
+        <Image
+          src={HolderPFP}
+          alt="User"
+          fill
+          className="rounded-full object-cover"
+        />
+      </div>
 
-      <form className="mt-4 w-full relative">
+      <form className="mt-8 w-full relative">
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your Name"
-          className="w-full border-2 shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue"
+          className="w-full md:text-xl border-2 shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue"
         />
       </form>
 
@@ -124,16 +131,16 @@ export default function Me() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Your Email*"
-          className="w-full border-2 shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue"
+          className="w-full md:text-xl md:mt-2 border-2 shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue"
         />
       </form>
 
-      <div className="mt-4 flex items-center w-full">
+      <div className="mt-4 md:mt-6 flex items-center w-full">
         {/* Country Code Dropdown */}
         <select
           value={countryCode}
           onChange={(e) => setCountryCode(e.target.value)}
-          className="border-2 shadow-md shadow-blue-300 text-lg tracking-wider border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue text-center h-full"
+          className="border-2 md:text-xl shadow-md shadow-blue-300 text-lg tracking-wider border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue text-center h-full"
         >
           <option value="+1">+1</option>
           <option value="+44">+44</option>
@@ -150,17 +157,28 @@ export default function Me() {
             value={mobileNumber}
             onChange={(e) => setMobileNumber(e.target.value)}
             placeholder="Mobile Number*"
-            className="w-full border-2 shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue h-full"
+            className="w-full border-2 md:text-xl shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue h-full"
           />
         </form>
       </div>
 
-      <p className="items-center text-xs font-medium mt-3">
+      <p className="items-center text-xs font-medium mt-3 md:mt-5 md:text-lg">
         *To recieve responses, updates, and reminders
       </p>
 
-      <p>Number of Rallyvite Groups</p>
-      <div>{numGroups}</div>
+      <p className="mt-12 md:text-2xl">Number of Rallyvite Groups</p>
+      <div className="text-8xl md:text-9xl font-bold text-rallyBlue mt-3">
+        {numGroups}
+      </div>
+
+      <p className="md:text-2xl"> Manage Get-Togethers</p>
+      {events && events.length > 0 && (
+        <EventCarousel
+          events={events}
+          currentIndex={currentEventIndex}
+          setCurrentIndex={setCurrentEventIndex}
+        />
+      )}
     </div>
   );
 }
