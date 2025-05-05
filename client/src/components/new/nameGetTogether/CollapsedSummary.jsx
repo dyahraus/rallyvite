@@ -22,7 +22,7 @@ export default function CollapsedSummary({
         {isCompleted ? (
           <PencilSquareIcon className="h-6 w-6" />
         ) : (
-          <Image src={Lines} width={100} height={100} />
+          <Image src={Lines} alt={'Lines'} width={100} height={100} />
         )}
       </button>
     </div>

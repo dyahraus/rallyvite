@@ -8,6 +8,10 @@ export function getFormattedDateTimeBlocks(getTogether) {
       console.log('Processing date:', date, 'with times:', times);
       // Step 1: convert and sort active times
       const baseDate = new Date(date);
+      // Ensure we're using the correct timezone
+      const timezoneOffset = baseDate.getTimezoneOffset();
+      baseDate.setMinutes(baseDate.getMinutes() + timezoneOffset);
+
       const selectedTimes = Object.entries(times)
         .filter(([, selected]) => selected)
         .map(([key]) => {
@@ -46,7 +50,7 @@ export function getFormattedDateTimeBlocks(getTogether) {
 
       // Step 3: format the output
       const formattedBlocks = grouped.map(([start, end]) => {
-        const dateLabel = baseDate.toLocaleDateString('en-US', {
+        const dateLabel = start.toLocaleDateString('en-US', {
           weekday: 'long',
           month: 'long',
           day: 'numeric',

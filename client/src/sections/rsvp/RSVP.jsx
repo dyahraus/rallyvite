@@ -7,66 +7,136 @@ import {
   fetchPendingEvents,
   fetchFullEventDetails,
 } from '@/redux/slices/eventsSlice';
+import RSVPTimeOptions from '@/components/rsvp/RSVPTimeOptions';
 import RSVPTimeGrid from '@/components/rsvp/RSVPTimeGrid';
 import DateCarousel from '@/components/rsvp/RSVPDateCarousel';
+import RSVPLocationCarousel from '@/components/rsvp/RSVPLocationCarousel';
 import UserList from '@/components/new/pollLocationTime/UserList';
+import {
+  mockPendingEvents,
+  mockFullEventDetails,
+} from '@/api/events/mockEvents';
 
 export default function RSVP() {
-  const { eventUuid } = useParams();
+  console.log('[RSVP] Component mounted');
   const dispatch = useDispatch();
-  const [selectedEventUuid, setSelectedEventUuid] = useState(eventUuid || '');
+  const [selectedEventUuid, setSelectedEventUuid] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(1); // Start with the second item as the center one.
+
+  const [location, setLocation] = useState({});
+
+  const pendingEvents = mockPendingEvents;
+  const fullEventDetails = mockFullEventDetails;
+  const loadingEventIds = [];
+
+  useEffect(() => {
+    console.log('[RSVP] Initial pendingEvents effect triggered', {
+      pendingEvents,
+    });
+    if (pendingEvents.length > 0) {
+      console.log('[RSVP] Setting initial selectedEventUuid', {
+        eventUuid: pendingEvents[0].eventUuid,
+      });
+      setSelectedEventUuid(pendingEvents[0].eventUuid);
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log('[RSVP] Location effect triggered', {
+      selectedEvent,
+      currentIndex,
+      hasLocations: Array.isArray(selectedEvent.locations),
+      locationsLength: selectedEvent.locations?.length,
+    });
+
+    if (
+      selectedEvent &&
+      Array.isArray(selectedEvent.locations) &&
+      selectedEvent.locations.length > 0
+    ) {
+      const safeIndex =
+        currentIndex < selectedEvent.locations.length ? currentIndex : 0;
+      console.log('[RSVP] Setting new location', {
+        safeIndex,
+        location: selectedEvent.locations[safeIndex],
+      });
+      setLocation(selectedEvent.locations[safeIndex]);
+    } else {
+      console.log('[RSVP] No valid location found, resetting location state');
+      setLocation({});
+    }
+  }, [selectedEvent, currentIndex]);
+  // const [selectedLocation, setSelectedLocations] = useState({});
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
+
   const [userSelections, setUserSelections] = useState({});
 
   // Get events state from Redux
-  const pendingEvents = useSelector((state) => state.events.pendingEvents);
-  const fullEventDetails = useSelector(
-    (state) => state.events.fullEventDetails
-  );
-  const loadingEventIds = useSelector((state) => state.events.loadingEventIds);
+  // const pendingEvents = useSelector((state) => state.events.pendingEvents);
+  // const fullEventDetails = useSelector(
+  //   (state) => state.events.fullEventDetails
+  // );
+  // const loadingEventIds = useSelector((state) => state.events.loadingEventIds);
 
-  // Fetch pending events on mount
-  useEffect(() => {
-    dispatch(fetchPendingEvents());
-  }, [dispatch]);
+  // // Fetch pending events on mount
+  // useEffect(() => {
+  //   dispatch(fetchPendingEvents());
+  // }, [dispatch]);
 
-  // Prefetch first event details
-  useEffect(() => {
-    if (
-      pendingEvents.length > 0 &&
-      !fullEventDetails[pendingEvents[0].eventUuid]
-    ) {
-      dispatch(fetchFullEventDetails(pendingEvents[0].eventUuid));
-    }
-  }, [pendingEvents, fullEventDetails, dispatch]);
+  // useEffect(() => {
+  //   if (pendingEvents.length > 0 && !selectedEventUuid) {
+  //     const firstEvent = pendingEvents[0];
+  //     const uuid = firstEvent.eventUuid;
 
-  // Fetch event details when UUID is provided
-  useEffect(() => {
-    if (eventUuid && !fullEventDetails[eventUuid]) {
-      dispatch(fetchFullEventDetails(eventUuid));
-      setSelectedEventUuid(eventUuid);
-    }
-  }, [eventUuid, fullEventDetails, dispatch]);
+  //     // Set as selected if not already selected
+  //     setSelectedEventUuid(uuid);
+
+  //     // Only dispatch fetch if full details not already loaded
+  //     if (!fullEventDetails[uuid]) {
+  //       dispatch(fetchFullEventDetails(uuid));
+  //     }
+  //   }
+  // }, [pendingEvents, selectedEventUuid, fullEventDetails, dispatch]);
 
   const handleSelectEvent = (eventUuid) => {
+    console.log('[RSVP] handleSelectEvent called', { eventUuid });
     if (!fullEventDetails[eventUuid]) {
+      console.log('[RSVP] Fetching full event details', { eventUuid });
       dispatch(fetchFullEventDetails(eventUuid));
     }
     setSelectedEventUuid(eventUuid);
   };
 
-  const handleDateChange = (date) => {
-    setLocalSelectedDate(date);
-  };
-
   const handleSubmit = (selections) => {
+    console.log('[RSVP] handleSubmit called', { selections });
     setUserSelections(selections);
   };
 
-  const selectedEvent = fullEventDetails[selectedEventUuid];
+  useEffect(() => {
+    console.log('[RSVP] selectedEventUuid or fullEventDetails changed', {
+      selectedEventUuid,
+      hasFullDetails: !!fullEventDetails[selectedEventUuid],
+    });
+
+    if (selectedEventUuid && fullEventDetails[selectedEventUuid]) {
+      console.log('[RSVP] Setting selected event', {
+        event: fullEventDetails[selectedEventUuid],
+      });
+      setSelectedEvent(fullEventDetails[selectedEventUuid]);
+    }
+  }, [selectedEventUuid, fullEventDetails]);
+
   const isLoading = loadingEventIds.includes(selectedEventUuid);
+  console.log('[RSVP] Render state', {
+    isLoading,
+    selectedEventUuid,
+    hasSelectedEvent: !!selectedEvent,
+    pendingEventsCount: pendingEvents.length,
+  });
 
   if (isLoading) {
+    console.log('[RSVP] Rendering loading state');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl">Loading event details...</div>
@@ -75,20 +145,33 @@ export default function RSVP() {
   }
 
   if (!selectedEvent && pendingEvents.length === 0) {
+    console.log('[RSVP] Rendering no events state');
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-500">No events found</div>
+        <div className="text-xl text-red-500">
+          You're all caught up! Go to Upcoming to see upcoming events or
+          Highlights to view past events.
+        </div>
       </div>
     );
   }
 
   // Get available times for the selected date and location
   const getAvailableTimesForDate = (date, location) => {
+    console.log('[RSVP] getAvailableTimesForDate called', { date, location });
     const dateObj = location?.dates?.find(
       (d) => new Date(d.date).toDateString() === date.toDateString()
     );
-    return dateObj?.times || {};
+    const times = dateObj?.times || {};
+    console.log('[RSVP] Found available times', { times });
+    return times;
   };
+
+  console.log('[RSVP] Rendering main component', {
+    selectedEvent,
+    location,
+    currentIndex,
+  });
 
   return (
     <div className="h-screen flex flex-col items-center pt-6">
@@ -122,25 +205,18 @@ export default function RSVP() {
           {selectedEvent.description && (
             <p className="text-gray-600 mt-2">{selectedEvent.description}</p>
           )}
-          <LocationCarousel locations={selectedEvent.locations} />
+          <RSVPLocationCarousel
+            currentIndex={currentIndex}
+            setCurrentIndex={setCurrentIndex}
+            locations={selectedEvent.locations}
+          />
           <div className="flex w-[90%] flex-col items-center mt-5">
             <h2 className="mb-2">Get-Together Time Option(s)</h2>
-            <DateCarousel
-              selectedDate={localSelectedDate}
-              handleDateChange={handleDateChange}
+            <RSVPTimeOptions
+              eventUuid={selectedEventUuid}
+              location={location}
             />
-            <div className="flex flex-row">
-              <RSVPTimeGrid
-                times={userSelections}
-                selectedDate={localSelectedDate}
-                availableSlots={getAvailableTimesForDate(
-                  localSelectedDate,
-                  selectedEvent.selectedLocation
-                )}
-                onTimeSubmit={handleSubmit}
-              />
-              <UserList users={selectedEvent.users} />
-            </div>
+            <UserList users={selectedEvent.users} />
           </div>
         </>
       )}

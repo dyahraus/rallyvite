@@ -6,6 +6,8 @@ import { useGesture } from '@use-gesture/react';
 import { animated, useSpring } from '@react-spring/web';
 
 export default function FinalTimeGrid({ times, selectedDate }) {
+  console.log('FinalTimeGrid rendered with props:', { times, selectedDate });
+
   const dispatch = useDispatch();
   const [selectedSlots, setSelectedSlots] = useState({});
   const prevDateRef = useRef(null);
@@ -14,22 +16,51 @@ export default function FinalTimeGrid({ times, selectedDate }) {
   const [scrollRatio, setScrollRatio] = useState(0);
   const draggedSlots = useRef(new Set());
   const gridRef = useRef(null);
+  const isInitialMount = useRef(true);
+  const hasInitialized = useRef(false);
+
+  // Reset state when date changes
+  useEffect(() => {
+    if (selectedDate && prevDateRef.current !== selectedDate) {
+      console.log('Date changed, resetting state:', {
+        prevDate: prevDateRef.current,
+        newDate: selectedDate,
+      });
+      setSelectedSlots({});
+      hasInitialized.current = false;
+      isInitialMount.current = true;
+    }
+  }, [selectedDate]);
 
   // Initialize slots for the current date
   useEffect(() => {
-    if (selectedDate) {
-      // Reset selectedSlots for the new date
-      setSelectedSlots({});
-      // If we have times from Redux for this date, use them
-      if (times) {
-        setSelectedSlots(times);
-      }
+    console.log('Date initialization effect triggered:', {
+      selectedDate,
+      currentTimes: times,
+      currentSelectedSlots: selectedSlots,
+      isInitialMount: isInitialMount.current,
+      hasInitialized: hasInitialized.current,
+    });
+
+    if (selectedDate && !hasInitialized.current) {
+      console.log('First initialization for date:', selectedDate);
+      hasInitialized.current = true;
+      setSelectedSlots(times || {});
     }
   }, [selectedDate, times]);
 
   // Handle time submission to Redux
   const handleTimeSubmission = (dateToSave) => {
-    if (!dateToSave) return;
+    if (!dateToSave) {
+      console.log('handleTimeSubmission called with no date');
+      return;
+    }
+
+    console.log('Submitting times to Redux:', {
+      date: dateToSave.toISOString(),
+      selectedSlots,
+      isInitialMount: isInitialMount.current,
+    });
 
     dispatch(
       setTimes({
@@ -41,19 +72,69 @@ export default function FinalTimeGrid({ times, selectedDate }) {
 
   // Save previous date's slots when date changes
   useEffect(() => {
+    console.log('Date change effect triggered:', {
+      prevDate: prevDateRef.current,
+      newDate: selectedDate,
+      currentSlots: selectedSlots,
+    });
+
     if (prevDateRef.current && prevDateRef.current !== selectedDate) {
+      console.log('Saving previous date slots:', {
+        date: prevDateRef.current,
+        slots: selectedSlots,
+      });
       handleTimeSubmission(prevDateRef.current);
     }
     prevDateRef.current = selectedDate;
   }, [selectedDate]);
 
+  // Handle initial date submission
+  useEffect(() => {
+    console.log('Initial submission effect triggered:', {
+      isInitialMount: isInitialMount.current,
+      selectedDate,
+      selectedSlots,
+      hasSlots: Object.keys(selectedSlots).length > 0,
+    });
+
+    if (
+      isInitialMount.current &&
+      selectedDate &&
+      Object.keys(selectedSlots).length > 0
+    ) {
+      console.log('Performing initial submission:', {
+        date: selectedDate,
+        slots: selectedSlots,
+      });
+      handleTimeSubmission(selectedDate);
+      isInitialMount.current = false;
+    }
+  }, [selectedSlots, selectedDate]);
+
   // Toggle slot selection
   const toggleSlotSelection = (hour, minute) => {
+    console.log('Toggling slot:', { hour, minute });
     const key = slotKey(hour, minute);
-    setSelectedSlots((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setSelectedSlots((prev) => {
+      const newSlots = {
+        ...prev,
+        [key]: !prev[key],
+      };
+      console.log('New slots state:', newSlots);
+
+      // Submit to Redux immediately after state update
+      if (selectedDate) {
+        console.log('Submitting updated slots to Redux:', newSlots);
+        dispatch(
+          setTimes({
+            selectedDate: selectedDate.toISOString(),
+            selectedSlots: newSlots,
+          })
+        );
+      }
+
+      return newSlots;
+    });
   };
 
   // Grid configuration
@@ -89,8 +170,10 @@ export default function FinalTimeGrid({ times, selectedDate }) {
     if (!target) return;
 
     const [h, m] = target.dataset.slot.split('-').map(Number);
+    console.log('Pointer down on slot:', { hour: h, minute: m });
 
     dragTimeout.current = setTimeout(() => {
+      console.log('Starting drag selection');
       setIsDraggingSlots(true);
       draggedSlots.current = new Set();
       const key = slotKey(h, m);
@@ -107,12 +190,14 @@ export default function FinalTimeGrid({ times, selectedDate }) {
     const dataSlot = target?.getAttribute('data-slot');
     if (dataSlot && !draggedSlots.current.has(dataSlot)) {
       const [h, m] = dataSlot.split('-').map(Number);
+      console.log('Dragging over slot:', { hour: h, minute: m });
       draggedSlots.current.add(dataSlot);
       toggleSlotSelection(h, m);
     }
   };
 
   const handlePointerUp = () => {
+    console.log('Pointer up, ending drag selection');
     clearTimeout(dragTimeout.current);
     setIsDraggingSlots(false);
   };

@@ -21,7 +21,10 @@ interface EventWithDetails {
   locations: (Location & {
     dates: {
       date: Date;
-      times: string[];
+      times: {
+        time: string;
+        id: number;
+      }[];
     }[];
   })[];
   users: EventUser[];
@@ -45,9 +48,18 @@ router.get('/api/events/find/:uuid', async (req: Request, res: Response) => {
     const datesWithTimes = await Promise.all(
       dates.map(async (date) => {
         const times = await getTimesForEventDate(date.id);
+        console.log(times);
+        console.log(date);
+        times.forEach((element) => {
+          console.log(element.time);
+          console.log(element.id);
+        });
         return {
           ...date,
-          times: times.map((time) => time.time),
+          times: times.map((time) => ({
+            time: time.time,
+            id: time.id,
+          })),
         };
       })
     );
@@ -58,7 +70,7 @@ router.get('/api/events/find/:uuid', async (req: Request, res: Response) => {
       locations: locations.map((location) => ({
         ...location,
         dates: datesWithTimes
-          .filter((date) => date.locationId === location.id)
+          .filter((date) => date.location_id === location.id)
           .map((date) => ({
             date: date.date,
             times: date.times,

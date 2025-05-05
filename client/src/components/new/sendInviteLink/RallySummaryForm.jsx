@@ -31,7 +31,6 @@ export default function RallySummaryForm({ setCurrContent }) {
           (async () => {
             try {
               const result = await createEvent(getTogether);
-              console.log('You are an idiot', result);
               dispatch(
                 setGetTogether({ ...getTogether, eventUuid: result.uuid })
               );
@@ -63,7 +62,6 @@ export default function RallySummaryForm({ setCurrContent }) {
       <div className="mt-4">
         {/* Added margin-top to separate carousel from other content */}
         <LocationCarousel locations={locations} />
-        <div>ALKDF</div>
         {blocks.map(({ location, date, time }, i) => (
           <div key={i} className="mb-4 text-center">
             <p className="font-semibold">{location}</p>
@@ -71,7 +69,6 @@ export default function RallySummaryForm({ setCurrContent }) {
             <p className="text-lg font-medium">{time}</p>
           </div>
         ))}
-        <div>ALKJFDL</div>
       </div>
     </div>
   );

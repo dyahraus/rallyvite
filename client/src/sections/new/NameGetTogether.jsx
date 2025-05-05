@@ -1,29 +1,49 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProgressTracker from '../../components/navigation/ProgressTracker';
 import GetTogetherNameForm from '../../components/new/nameGetTogether/GetTogetherNameForm';
 import GetTogetherDescriptionForm from '../../components/new/nameGetTogether/GetTogetherDescriptionForm';
 import GetTogetherDurationForm from '../../components/new/nameGetTogether/GetTogetherDurationForm';
 import CollapsedSummary from '../../components/new/nameGetTogether/CollapsedSummary';
-import MainNavBar from '../../components/navigation/MainNavBar';
-import BottomActionBar from '../../components/navigation/BottomActionBar';
+import { useBottomActionBar } from '@/context/BottomActionBarContext';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setName,
   setDescription,
   setDuration,
+  setNameCompleted,
+  setDescriptionCompleted,
+  setDurationCompleted,
+  setNameSectionCompleted,
 } from '../../redux/slices/getTogetherSlice';
 
 export default function NameGetTogether({ setCurrentStep }) {
   const dispatch = useDispatch();
-  const name = useSelector((state) => state.getTogether.name);
-  const description = useSelector((state) => state.getTogether.description);
-  const duration = useSelector((state) => state.getTogether.duration);
+  const {
+    name,
+    description,
+    duration,
+    nameCompleted,
+    descriptionCompleted,
+    durationCompleted,
+    nameSectionCompleted,
+  } = useSelector((state) => state.getTogether);
 
   const [activeStep, setActiveStep] = useState('name');
-  const [nameCompleted, setNameCompleted] = useState(false);
-  const [descriptionCompleted, setDescriptionCompleted] = useState(false);
-  const [durationCompleted, setDurationCompleted] = useState(false);
+
+  const { setBottomAction } = useBottomActionBar();
+
+  useEffect(() => {
+    {
+      setBottomAction({
+        label: 'Next',
+        disabled: !nameSectionCompleted,
+        onClick: () => {
+          setCurrentStep(2);
+        },
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -33,7 +53,7 @@ export default function NameGetTogether({ setCurrentStep }) {
           onNameSubmit={(name) => {
             dispatch(setName(name));
             setActiveStep('description');
-            setNameCompleted(true);
+            dispatch(setNameCompleted(true));
           }}
         />
       ) : (
@@ -50,12 +70,12 @@ export default function NameGetTogether({ setCurrentStep }) {
           onDescriptionSubmit={(description) => {
             dispatch(setDescription(description));
             setActiveStep('duration');
-            setDescriptionCompleted(true);
+            dispatch(setDescriptionCompleted(true));
           }}
           onSkip={() => {
             dispatch(setDescription(''));
             setActiveStep('duration');
-            setDescriptionCompleted(true);
+            dispatch(setDescriptionCompleted(true));
           }}
         />
       ) : (
@@ -70,7 +90,8 @@ export default function NameGetTogether({ setCurrentStep }) {
         <GetTogetherDurationForm
           onDurationSubmit={(duration) => {
             dispatch(setDuration(duration));
-            setDurationCompleted(true);
+            dispatch(setDurationCompleted(true));
+            dispatch(setNameSectionCompleted(true));
           }}
           setCurrentStep={setCurrentStep}
         />

@@ -5,6 +5,7 @@ export const appendParticipantToEvent = async (eventId, userId) => {
     const response = await axios.post('/api/events/append-participant', {
       eventId,
       userId,
+      userTimes,
     });
     return response.data;
   } catch (error) {

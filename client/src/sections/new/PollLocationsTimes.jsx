@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react';
 import GetTogetherLocationOptions from '../../components/new/pollLocationTime/GetTogetherLocationOptions';
 import GetTogetherTimeOptions from '../../components/new/pollLocationTime/GetTogetherTimeOptions';
 import CollapsedSummary from '@/components/new/nameGetTogether/CollapsedSummary';
-import { LoadScript } from '@react-google-maps/api';
+import { useJsApiLoader } from '@react-google-maps/api';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setLocation,
   setSelectedLocation,
 } from '../../redux/slices/getTogetherSlice';
-import LocationCarousel from '@/components/new/sendInviteLink/LocationCarousel';
+import LocationCarousel from '@/components/new/pollLocationTime/LocationCarousel';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
 
 const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -21,6 +21,11 @@ export default function PollLocationsTimes({ setCurrentStep }) {
   const [locationCompleted, setLocationCompleted] = useState(false);
   const [timesCompleted, setTimesCompleted] = useState(true);
   const { locations } = useSelector((state) => state.getTogether);
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: apiKey,
+    libraries: ['places'],
+  });
 
   useEffect(() => {
     if (locationCompleted || timesCompleted) {
@@ -60,18 +65,19 @@ export default function PollLocationsTimes({ setCurrentStep }) {
       <CollapsedSummary
         label="Get-Together Location(s)"
         onEdit={() => setActiveStep('location')}
-        isCompleted={false}
+        isCompleted={true}
       />
     );
   };
 
+  if (loadError) return <div>Error loading Google Maps API.</div>;
+  if (!isLoaded) return <div>Loading map resources...</div>; // optional spinner
+
   return (
     <>
-      <LoadScript googleMapsApiKey={apiKey} libraries={['places']}>
-        {renderLocationSection()}
-      </LoadScript>
+      {renderLocationSection()}
       {activeStep === 'times' ? (
-        <GetTogetherTimeOptions />
+        <GetTogetherTimeOptions setCurrentStep={setCurrentStep} />
       ) : (
         <CollapsedSummary
           label="Get-Together Time Option(s)"

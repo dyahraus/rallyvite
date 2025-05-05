@@ -7,10 +7,12 @@ import { useBottomActionBar } from '@/context/BottomActionBarContext';
 import { editUser } from '@/api/auth/editUser';
 import { setUser } from '@/redux/slices/userSlice';
 import { createUser } from '@/api/auth/createUser';
+import { findUserEvents } from '@/api/events/getUserEvents';
 
 export default function Me() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.data);
+  console.log(user);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [mobileNumber, setMobileNumber] = useState(user?.phone || '');
@@ -32,7 +34,7 @@ export default function Me() {
         onClick: handleSave,
       });
     }
-  }, []);
+  }, [name, email, mobileNumber, countryCode]);
 
   const handlecreate = async () => {
     try {
@@ -46,7 +48,8 @@ export default function Me() {
         email,
         phone: `${countryCode}${mobileNumber}`,
       });
-      dispatch(setUser(createdUser));
+      console.log(createdUser);
+      dispatch(setUser(createdUser.user));
     } catch (error) {
       console.error('Error creating user:', error);
     }
@@ -71,6 +74,28 @@ export default function Me() {
       alert(error.error || 'Failed to update profile');
     }
   };
+
+  const getUserEvents = async () => {
+    try {
+      const response = await findUserEvents();
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching user events:', error);
+      return [];
+    }
+  };
+
+  const [numGroups, setNumGroups] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      getUserEvents().then((events) => {
+        setNumGroups(events.length);
+      });
+    } else {
+      setNumGroups(0);
+    }
+  }, [user]);
 
   return (
     <div className="h-screen flex flex-col items-center pt-6">
@@ -133,6 +158,9 @@ export default function Me() {
       <p className="items-center text-xs font-medium mt-3">
         *To recieve responses, updates, and reminders
       </p>
+
+      <p>Number of Rallyvite Groups</p>
+      <div>{numGroups}</div>
     </div>
   );
 }

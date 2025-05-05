@@ -18,21 +18,13 @@ export const createUser = async ({ name, email, phone }) => {
       return {
         status: 'EXISTING_USER',
         user: loginResponse.data.user,
-        jwt: loginResponse.data.jwt,
-        sessionToken: loginResponse.data.sessionToken,
-        magicLinkToken: loginResponse.data.magicLinkToken,
       };
     }
 
     // If we get a successful response with new user
     return {
       status: 'SUCCESS',
-      user: {
-        uuid: response.data.userUuid,
-        jwt: response.data.jwt,
-        sessionToken: response.data.sessionToken,
-        magicLinkToken: response.data.magicLinkToken,
-      },
+      user: response.data.user,
     };
   } catch (err) {
     // Handle unexpected errors

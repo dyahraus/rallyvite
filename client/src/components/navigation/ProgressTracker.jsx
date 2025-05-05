@@ -1,8 +1,21 @@
+'use client';
+
+import { useSelector } from 'react-redux';
+
 export default function ProgressTracker({ currentStep, setCurrentStep }) {
+  const getTogether = useSelector((state) => state.getTogether);
+  const nameSectionCompleted = getTogether.nameSectionCompleted;
+  const locationSectionCompleted = getTogether.locationSectionCompleted;
+  const linkSectionCompleted = getTogether.linkSectionCompleted;
+
   const steps = [
-    { id: 1, label: 'Name Get-Together' },
-    { id: 2, label: 'Poll Locations & Times' }, // Shortened slightly to help on mobile
-    { id: 3, label: 'Send Invite Link' },
+    { id: 1, label: 'Name Get-Together', completed: nameSectionCompleted },
+    {
+      id: 2,
+      label: 'Poll Locations & Times',
+      completed: locationSectionCompleted,
+    }, // Shortened slightly to help on mobile
+    { id: 3, label: 'Send Invite Link', completed: linkSectionCompleted },
   ];
 
   return (
@@ -24,7 +37,11 @@ export default function ProgressTracker({ currentStep, setCurrentStep }) {
                   ? 'text-gray-700'
                   : 'text-gray-500'
               }`}
-              onClick={() => setCurrentStep(step.id)}
+              onClick={() => {
+                if (step.completed) {
+                  setCurrentStep(step.id);
+                }
+              }}
             >
               {step.label}
             </div>

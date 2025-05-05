@@ -3,31 +3,47 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { findEventAndConvert } from '@/api/events/findEvent';
+import RSVPLocationCarousel from '../../../components/rsvp/RSVPLocationCarousel';
 import { useDispatch, useSelector } from 'react-redux';
 import { setGetTogether } from '@/redux/slices/getTogetherSlice';
-import RSVPTimeGrid from '../../../components/rsvp/RSVPTimeGrid';
+import RSVPTimeOptions from '../../../components/rsvp/RSVPTimeOptionsDraft';
 import { openInvite } from '@/api/events/openInvite';
+import { BottomActionBarProvider } from '@/context/BottomActionBarContext';
+import BottomActionBar from '@/components/navigation/BottomActionBar';
+
+const RSVPSection = ({ event, setEvent, currentIndex, setCurrentIndex }) => {
+  if (!event?.locations?.length) return null;
+
+  return (
+    <>
+      <h1 className="font-bold text-xl">{event?.name || 'New Rallyvite'}</h1>
+      <RSVPLocationCarousel
+        currentIndex={currentIndex}
+        setCurrentIndex={setCurrentIndex}
+        locations={event.locations}
+      />
+      <div className="flex w-[90%] flex-col items-center mt-5">
+        <h2 className="mb-2">Get-Together Time Option(s)</h2>
+        <RSVPTimeOptions setEvent={setEvent} location={event.locations[0]} />
+      </div>
+    </>
+  );
+};
 
 export default function EventPage() {
   const { eventUuid } = useParams();
   const searchParams = useSearchParams();
-  const inviteToken = searchParams.get('invite');
-  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = (useState < string) | (null > null);
+  const [error, setError] = useState(null);
+  const [event, setEvent] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [currentIndex, setCurrentIndex] = useState(1);
 
-  // Get the getTogether state from Redux
-  const getTogether = useSelector((state) => state.getTogether);
-  const locations = getTogether.locations;
-  const name = getTogether.name;
-
-  useEffect(() => {
-    if (typeof inviteToken === 'string') {
-      localStorage.setItem('inviteToken', inviteToken);
-
-      openInvite({ token: inviteToken });
-    }
-  }, [inviteToken]);
+  const [timeSelections, setTimeSelections] = useState({});
+  console.log(
+    '[RSVPTimeOptions] Initial localSelectedDate:',
+    localSelectedDate
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -36,11 +52,13 @@ export default function EventPage() {
       try {
         setLoading(true);
         const result = await findEventAndConvert(eventUuid);
+        console.log(result);
 
         if (!isMounted) return;
 
         if (result.status === 'SUCCESS') {
-          dispatch(setGetTogether(result.getTogether));
+          setEvent(result.event);
+          console.log(event);
         } else {
           setError(result.error);
         }
@@ -61,7 +79,7 @@ export default function EventPage() {
     return () => {
       isMounted = false;
     };
-  }, [eventUuid, dispatch]);
+  }, [eventUuid]);
 
   if (loading) {
     return (
@@ -79,33 +97,19 @@ export default function EventPage() {
     );
   }
 
-  // Only render the event details after loading is complete and we have data
   return (
-    <div className="h-screen flex flex-col items-center pt-6">
-      <h1 className="font-bold text-xl">{name ? name : 'New Rallyvite'}</h1>
-      <LocationCarousel locations={locations} />
-      <div className="flex w-[90%] flex-col items-center mt-5">
-        <h2 className="mb-2">Get-Together Time Option(s)</h2>
-        <DateCarousel
-          selectedDate={localSelectedDate}
-          handleDateChange={handleDateChange}
-        />
-        <div className="flex flex-row">
-          <RSVPTimeGrid
-            times={userSelections}
-            selectedDate={currentDate}
-            availableSlots={{
-              '9-0': true,
-              '9-15': true,
-              '10-30': true,
-              '14-0': true,
-            }}
-            onTimeSubmit={handleSubmit}
+    <BottomActionBarProvider>
+      <div className="h-screen flex flex-col items-center pt-6">
+        {currentStep === 1 && (
+          <RSVPSection
+            event={event}
+            setEvent={setEvent}
+            currentIndex={currentIndex}
+            setCurrentIndex={setCurrentIndex}
           />
-
-          <UserList />
-        </div>
+        )}
+        <BottomActionBar />
       </div>
-    </div>
+    </BottomActionBarProvider>
   );
 }

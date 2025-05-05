@@ -8,7 +8,7 @@ import { createAndAppendOrganizer } from '@/api/auth/createAndAppendOrganizer';
 import { useSelector } from 'react-redux';
 import { createInvite } from '@/api/events/createInvite';
 
-export default function GetLinkFormGuest() {
+export default function RSVPUserInfo() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -20,7 +20,7 @@ export default function GetLinkFormGuest() {
 
   useEffect(() => {
     setBottomAction({
-      label: 'Share',
+      label: 'Send Availability',
       disabled: true,
       onClick: () => {},
     });
@@ -28,7 +28,7 @@ export default function GetLinkFormGuest() {
 
   useEffect(() => {
     setBottomAction({
-      label: 'Share',
+      label: 'Send Availability',
       disabled: !name,
       onClick: handleShare,
       textColor: name ? 'text-rallyYellow' : undefined,
@@ -40,7 +40,7 @@ export default function GetLinkFormGuest() {
       const phone = countryCode + mobileNumber;
 
       // First create and append the organizer
-      const organizerResult = await createAndAppendOrganizer({
+      const organizerResult = await createAndAppendParticipant({
         name,
         email,
         phone,
@@ -134,57 +134,7 @@ export default function GetLinkFormGuest() {
       </p>
       <div className="relative mt-4 ml-10">
         <Image src={ThumbsUp} className="ml-2" height={200} width={200} />
-        <p className="absolute bottom-3.5 left-0 w-full text-center text-xs font-medium">
-          You're the FIRST and going!
-        </p>
-      </div>
-      <p className="items-center font-medium text-lg mt-3 text-center">
-        Put this on repeat mode - how often should Rallyvite plan this
-        get-together?
-      </p>
-
-      <select
-        value={repeatInterval}
-        onChange={(e) => setRepeatInterval(e.target.value)}
-        className="w-full border-2 shadow-md px-8 text-lg font-medium tracking-wider border-black rounded-xl p-3 mt-1"
-      >
-        <option className="text-lg font-medium" value="None">
-          None
-        </option>
-        <option className="text-lg font-medium" value="Every Week">
-          Every Week
-        </option>
-        <option className="text-lg font-medium" value="Every 2 Weeks">
-          Every 2 Weeks
-        </option>
-        <option className="text-lg font-medium" value="Every 3 Weeks">
-          Every 3 Weeks
-        </option>
-        <option className="text-lg font-medium" value="Every Month">
-          Every Month
-        </option>
-        <option className="text-lg font-medium" value="Every 2 Months">
-          Every 2 Months
-        </option>
-        <option className="text-lg font-medium" value="Every 3 Months">
-          Every 3 Months
-        </option>
-        <option className="text-lg font-medium" value="Every 4 Months">
-          Every 4 Months
-        </option>
-        <option className="text-lg font-medium" value="Every 5 Months">
-          Every 5 Months
-        </option>
-        <option className="text-lg font-medium" value="Every 6 Months">
-          Every 6 Months
-        </option>
-        <option className="text-lg font-medium" value="Every 9 Months">
-          Every 9 Months
-        </option>
-        <option className="text-lg font-medium" value="Every Year">
-          Every Year
-        </option>
-      </select>
+       
     </div>
   );
 }

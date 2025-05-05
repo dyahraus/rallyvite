@@ -154,10 +154,15 @@ router.post('/api/users/createuser', (async (req: Request, res: Response) => {
 
     console.log('Sending success response...');
     res.status(201).send({
-      userUuid: user.uuid,
-      jwt: userJwt,
-      sessionToken: session.session_token,
-      magicLinkToken,
+      status: 'SUCCESS',
+      user: {
+        id: user.id,
+        uuid: user.uuid,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        is_guest: user.is_guest,
+      },
     });
   } catch (err) {
     console.error('Error in create-user route:', err);

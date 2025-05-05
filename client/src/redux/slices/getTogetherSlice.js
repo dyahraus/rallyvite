@@ -34,8 +34,14 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   name: '',
+  nameCompleted: false,
   description: '',
+  descriptionCompleted: false,
   duration: '',
+  durationCompleted: false,
+  nameSectionCompleted: false,
+  locationSectionCompleted: false,
+  linkSectionCompleted: false,
   eventUuid: '',
   locations: [
     {
@@ -86,11 +92,29 @@ const getTogetherSlice = createSlice({
     setName: (state, action) => {
       state.name = action.payload;
     },
+    setNameCompleted: (state, action) => {
+      state.nameCompleted = action.payload;
+    },
     setDescription: (state, action) => {
       state.description = action.payload;
     },
+    setDescriptionCompleted: (state, action) => {
+      state.descriptionCompleted = action.payload;
+    },
     setDuration: (state, action) => {
       state.duration = action.payload;
+    },
+    setDurationCompleted: (state, action) => {
+      state.durationCompleted = action.payload;
+    },
+    setNameSectionCompleted: (state, action) => {
+      state.nameSectionCompleted = action.payload;
+    },
+    setLocationSectionCompleted: (state, action) => {
+      state.locationSectionCompleted = action.payload;
+    },
+    setLinkSectionCompleted: (state, action) => {
+      state.locationSectionCompleted = action.payload;
     },
     setLocation: (state, action) => {
       const locationData = action.payload;
@@ -215,6 +239,12 @@ export const {
   setName,
   setDescription,
   setDuration,
+  setNameCompleted,
+  setDescriptionCompleted,
+  setDurationCompleted,
+  setNameSectionCompleted,
+  setLocationSectionCompleted,
+  setLinkSectionCompleted,
   getTimesForLocationDate,
 } = getTogetherSlice.actions;
 export default getTogetherSlice.reducer;

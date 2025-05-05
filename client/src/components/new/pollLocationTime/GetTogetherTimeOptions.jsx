@@ -7,7 +7,7 @@ import UserList from './UserList';
 import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedDate } from '../../../redux/slices/getTogetherSlice';
 
-export default function GetTogetherTimeOptions() {
+export default function GetTogetherTimeOptions({ setCurrentStep }) {
   const dispatch = useDispatch();
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
 
@@ -16,6 +16,8 @@ export default function GetTogetherTimeOptions() {
       setLocalSelectedDate(date);
     }
   };
+
+  const EMPTY_TIMES = {};
 
   // Get the location and selected date times from Redux
   const times = useSelector((state) => {
@@ -36,7 +38,7 @@ export default function GetTogetherTimeOptions() {
       return existingDate.toISOString() === normalizedDateString;
     });
     console.log('Found Date:', date);
-    return date?.times || {}; // Return times if found, else an empty object
+    return date?.times || EMPTY_TIMES; // Return times if found, else an empty object
   });
 
   console.log('Final times being passed to TimeGrid:', times);
@@ -49,7 +51,11 @@ export default function GetTogetherTimeOptions() {
         handleDateChange={handleDateChange}
       />
       <div className="flex flex-row">
-        <FinalTimeGrid times={times} selectedDate={localSelectedDate} />
+        <TimeGrid
+          times={times}
+          selectedDate={localSelectedDate}
+          setCurrentStep={setCurrentStep}
+        />
         <UserList />
       </div>
     </div>

@@ -1,95 +1,120 @@
 'use client';
 import React, { useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setTimes } from '@/redux/slices/getTogetherSlice';
+import { setUserTimes } from '@/redux/slices/eventsSlice';
+import { useGesture } from '@use-gesture/react';
+import { animated, useSpring } from '@react-spring/web';
 
 export default function RSVPTimeGrid({
+  eventUuid,
+  location,
+  userTimes,
   times,
   selectedDate,
-  onTimeSubmit,
-  availableSlots = {},
 }) {
+  console.log('[TimeGrid] Component mounted with props:', {
+    eventUuid,
+    location,
+    userTimes,
+    times,
+    selectedDate,
+  });
+
   const dispatch = useDispatch();
+  const [userSelectedSlots, setUserSelectedSlots] = useState(userTimes);
   const [selectedSlots, setSelectedSlots] = useState(times);
   const prevDateRef = useRef(selectedDate);
   console.log('TimeGrid received times:', times);
   console.log('TimeGrid selectedSlots state:', selectedSlots);
 
-  const slotKey = (hour, minute) => `${hour}-${minute}`;
-  const isSlotAvailable = (hour, minute) =>
-    !!availableSlots[slotKey(hour, minute)];
-  const isSlotSelected = (hour, minute) =>
-    !!selectedSlots[slotKey(hour, minute)];
-
+  // UPDATE TODO RSVP
   const handleTimeSubmission = (dateToSave) => {
-    console.log('Submitting times to Redux:', selectedSlots);
+    console.log('[TimeGrid] Submitting times to Redux:', {
+      dateToSave,
+      selectedSlots,
+      eventUuid,
+      location,
+    });
     dispatch(
-      setTimes({
+      setUserTimes({
         selectedDate: dateToSave.toISOString(),
         selectedSlots,
+        eventUuid,
+        selectedLoction: location,
       })
     );
   };
 
   // Update selectedSlots when times changes
   useEffect(() => {
-    console.log('TimeGrid useEffect triggered with new times:', times);
+    console.log('[TimeGrid] Times prop changed:', {
+      oldTimes: selectedSlots,
+      newTimes: times,
+    });
     setSelectedSlots(times);
   }, [times]);
+
+  // Update userSelectedSlots when times changes
+  useEffect(() => {
+    console.log('[TimeGrid] UserTimes prop changed:', {
+      oldUserTimes: userSelectedSlots,
+      newUserTimes: userTimes,
+    });
+    setUserSelectedSlots(userTimes);
+  }, [userTimes]);
 
   // Save previous date's slots when date changes
   useEffect(() => {
     if (prevDateRef.current && prevDateRef.current !== selectedDate) {
+      console.log('[TimeGrid] Date changed, saving previous date:', {
+        previousDate: prevDateRef.current,
+        newDate: selectedDate,
+      });
       handleTimeSubmission(prevDateRef.current);
     }
     prevDateRef.current = selectedDate;
   }, [selectedDate]);
 
-  // Only update local state when user makes changes and slot is available
-  const toggleSlotSelection = (hour, minute) => {
+  // Only update local state when user makes changes
+  const toggleUserSlotSelection = (hour, minute) => {
     const key = slotKey(hour, minute);
-    if (!isSlotAvailable(hour, minute)) return;
-    setSelectedSlots((prev) => ({
+
+    // ✅ Only allow toggling if the slot is selectable
+    if (!selectedSlots[key]) {
+      console.log(`[TimeGrid] Slot ${key} is not selectable.`);
+      return;
+    }
+
+    console.log('[TimeGrid] Toggling slot selection:', {
+      hour,
+      minute,
+      key,
+      currentState: userSelectedSlots[key],
+    });
+    setUserSelectedSlots((prev) => ({
       ...prev,
       [key]: !prev[key],
     }));
   };
 
-  // Determine slot background class based on state
-  const getSlotClass = (hour, minute) => {
-    if (!isSlotAvailable(hour, minute)) return 'bg-gray-100 cursor-not-allowed';
-    if (isSlotSelected(hour, minute)) return 'bg-rallyYellow';
-    return 'bg-rallyBlue hover:bg-rallyYellow';
-  };
-
   const gridRef = useRef(null);
+  const [isDraggingSlots, setIsDraggingSlots] = useState(false);
+  const dragTimeout = useRef(null);
   const [scrollRatio, setScrollRatio] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartY = useRef(0);
-  const dragStartScroll = useRef(0);
+  const draggedSlots = useRef(new Set());
+  const isInitialMount = useRef(true);
+  const hasInitialized = useRef(false);
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = [0, 15, 30, 45];
 
+  const slotKey = (hour, minute) => `${hour}-${minute}`;
+
   const isHourSelected = (hour) =>
     minutes.some((minute) => selectedSlots[slotKey(hour, minute)]);
 
-  const handleSlotMouseDown = (hour, minute) => {
-    setIsDragging(true);
-    toggleSlotSelection(hour, minute);
-  };
-
-  const handleSlotMouseEnter = (hour, minute) => {
-    if (isDragging) {
-      toggleSlotSelection(hour, minute);
-    }
-  };
-
-  useEffect(() => {
-    const handleMouseUp = () => setIsDragging(false);
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => document.removeEventListener('mouseup', handleMouseUp);
-  }, []);
+  const isHourUserSelected = (hour) =>
+    minutes.some((minute) => userSelectedSlots[slotKey(hour, minute)]);
 
   const formattedHour = (hour) => {
     if (hour === 0) return 12;
@@ -99,73 +124,86 @@ export default function RSVPTimeGrid({
 
   const period = (hour) => (hour < 12 ? 'A' : 'P');
 
+  // Scroll handling
   const handleScroll = () => {
-    const scrollTop = gridRef.current.scrollTop;
-    const maxScroll =
-      gridRef.current.scrollHeight - gridRef.current.clientHeight;
-    setScrollRatio(scrollTop / maxScroll);
+    const grid = gridRef.current;
+    const ratio = grid.scrollTop / (grid.scrollHeight - grid.clientHeight);
+    setScrollRatio(ratio);
   };
 
-  const handleScrollbarStart = (clientY) => {
-    setIsDragging(true);
-    dragStartY.current = clientY;
-    dragStartScroll.current = gridRef.current.scrollTop;
+  // Animated scrollbar thumb
+  const thumbSpring = useSpring({
+    top: `calc(${scrollRatio * 100}% - 10px)`,
+  });
+
+  // Slot selection handlers
+  const handlePointerDown = (e) => {
+    const target = e.target.closest('[data-slot]');
+    if (!target) return;
+
+    const [h, m] = target.dataset.slot.split('-').map(Number);
+    const key = slotKey(h, m);
+
+    // ✅ Only start drag if slot is selectable
+    if (!selectedSlots[key]) return;
+
+    console.log('[TimeGrid] Pointer down on slot:', { hour: h, minute: m });
+
+    dragTimeout.current = setTimeout(() => {
+      console.log('[TimeGrid] Starting drag selection');
+      setIsDraggingSlots(true);
+      draggedSlots.current = new Set();
+      draggedSlots.current.add(key);
+      toggleUserSlotSelection(h, m);
+    }, 400);
   };
 
-  const handleScrollbarMouseDown = (e) => handleScrollbarStart(e.clientY);
-  const handleScrollbarTouchStart = (e) =>
-    handleScrollbarStart(e.touches[0].clientY);
+  const handlePointerMove = (e) => {
+    if (!isDraggingSlots) return;
 
-  const handleScrollbarMove = (clientY) => {
-    if (!isDragging) return;
-    const deltaY = clientY - dragStartY.current;
-    const scrollHeight =
-      gridRef.current.scrollHeight - gridRef.current.clientHeight;
-    const newScrollTop =
-      dragStartScroll.current + (deltaY / 600) * scrollHeight;
-    gridRef.current.scrollTop = Math.max(
-      0,
-      Math.min(newScrollTop, scrollHeight)
-    );
+    const touch = e.touches?.[0] || e;
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const dataSlot = target?.getAttribute('data-slot');
+    if (!dataSlot || draggedSlots.current.has(dataSlot)) return;
+
+    const [h, m] = dataSlot.split('-').map(Number);
+    const key = slotKey(h, m);
+
+    // ✅ Only allow toggling if it's a selectable slot
+    if (!selectedSlots[key]) return;
+
+    console.log('[TimeGrid] Dragging over slot:', { hour: h, minute: m });
+    draggedSlots.current.add(dataSlot);
+    toggleUserSlotSelection(h, m);
   };
 
-  const formattedHourForThumb = () => {
-    const totalSlots = hours.length * 4;
-    const currentSlotIndex = Math.round(scrollRatio * (totalSlots - 1));
-    const hour = Math.floor(currentSlotIndex / 4);
-    return formattedHour(hour);
+  const handlePointerUp = () => {
+    console.log('[TimeGrid] Pointer up, ending drag selection');
+    clearTimeout(dragTimeout.current);
+    setIsDraggingSlots(false);
   };
 
-  const handleMouseMove = (e) => handleScrollbarMove(e.clientY);
-  const handleTouchMove = (e) => handleScrollbarMove(e.touches[0].clientY);
-
-  const handleEnd = () => setIsDragging(false);
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleEnd);
-      document.addEventListener('touchmove', handleTouchMove);
-      document.addEventListener('touchend', handleEnd);
-    } else {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleEnd);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleEnd);
-    }
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleEnd);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleEnd);
-    };
-  }, [isDragging]);
+  // Scrollbar thumb drag behavior
+  const bindThumbDrag = useGesture({
+    onDrag: ({ movement: [, my], last }) => {
+      const grid = gridRef.current;
+      const maxScroll = grid.scrollHeight - grid.clientHeight;
+      const newScroll = scrollRatio * maxScroll + my;
+      grid.scrollTop = Math.min(maxScroll, Math.max(0, newScroll));
+      if (last) handleScroll();
+    },
+  });
 
   return (
     <div className="relative flex w-[60%] max-w-md h-96 mt-4 shadow-sm">
       <div
         ref={gridRef}
         onScroll={handleScroll}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        onPointerLeave={handlePointerUp}
         className="flex-1 overflow-y-auto border border-black scrollbar-none"
       >
         {hours.map((hour) => (
@@ -175,7 +213,11 @@ export default function RSVPTimeGrid({
           >
             <div
               className={`w-14 h-32 flex items-center justify-center border border-gray-200 font-bold text-5xl ${
-                isHourSelected(hour) ? 'bg-rallyYellow' : ''
+                isHourUserSelected(hour)
+                  ? 'bg-rallyBlue'
+                  : isHourSelected(hour)
+                  ? 'bg-rallyYellow'
+                  : 'bg-gray-100 cursor-not-allowed opacity-50'
               }`}
             >
               {formattedHour(hour)}
@@ -185,28 +227,19 @@ export default function RSVPTimeGrid({
               {minutes.map((minute) => (
                 <div
                   key={minute}
-                  className={`h-8 flex items-center justify-center text-xs select-none text-black ${getSlotClass(
-                    hour,
-                    minute
-                  )}`}
-                  onMouseDown={() => handleSlotMouseDown(hour, minute)}
-                  onMouseEnter={() => handleSlotMouseEnter(hour, minute)}
-                  onTouchStart={() => {
-                    setIsDragging(true);
-                    toggleSlotSelection(hour, minute);
-                  }}
-                  onTouchMove={(e) => {
-                    const touchedElement = document.elementFromPoint(
-                      e.touches[0].clientX,
-                      e.touches[0].clientY
-                    );
-                    if (touchedElement?.dataset?.slot) {
-                      const [touchedHour, touchedMinute] =
-                        touchedElement.dataset.slot.split('-').map(Number);
-                      toggleSlotSelection(touchedHour, touchedMinute);
+                  className={`h-8 flex items-center justify-center text-xs cursor-pointer select-none text-black ${
+                    userSelectedSlots[slotKey(hour, minute)]
+                      ? 'bg-rallyBlue'
+                      : selectedSlots[slotKey(hour, minute)]
+                      ? 'bg-rallyYellow'
+                      : 'bg-gray-100 cursor-not-allowed opacity-50'
+                  }`}
+                  data-slot={`${hour}-${minute}`}
+                  onClick={() => {
+                    if (selectedSlots[slotKey(hour, minute)]) {
+                      toggleUserSlotSelection(hour, minute);
                     }
                   }}
-                  data-slot={`${hour}-${minute}`}
                 >
                   {minute === 0 ? ':00' : `:${minute}`}
                 </div>
@@ -215,7 +248,11 @@ export default function RSVPTimeGrid({
 
             <div
               className={`w-14 h-32 flex items-center justify-center border border-gray-200 font-bold text-5xl ${
-                isHourSelected(hour) ? 'bg-rallyYellow' : ''
+                isHourUserSelected(hour)
+                  ? 'bg-rallyBlue'
+                  : isHourSelected(hour)
+                  ? 'bg-rallyYellow'
+                  : ''
               }`}
             >
               {period(hour)}
@@ -226,15 +263,13 @@ export default function RSVPTimeGrid({
 
       <div className="w-5 relative">
         <div className="absolute top-0 left-3 w-1 bg-gray-300 h-full rounded"></div>
-
-        <div
+        <animated.div
+          {...bindThumbDrag()}
           className="absolute left-1.5 w-4 h-10 bg-rallyBlue rounded-full cursor-pointer flex items-center justify-center text-rallyYellow font-bold text-sm"
-          style={{ top: `calc(${scrollRatio * 100}% - 10px)` }}
-          onMouseDown={handleScrollbarMouseDown}
-          onTouchStart={handleScrollbarTouchStart}
+          style={thumbSpring}
         >
-          {formattedHourForThumb()}
-        </div>
+          {formattedHour(Math.floor(scrollRatio * 24))}
+        </animated.div>
       </div>
     </div>
   );

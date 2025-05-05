@@ -1,7 +1,7 @@
 export interface EventDate {
   id: number;
-  eventId: number;
-  locationId: number;
+  event_id: number;
+  location_id: number;
   date: Date;
   status: number;
   dateLastNotification: Date | null;
