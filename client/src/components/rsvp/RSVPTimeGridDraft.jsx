@@ -9,31 +9,62 @@ export default function RSVPTimeGrid({
   userTimes,
   times,
   selectedDate,
-  setEvent,
   onTimeSelection,
 }) {
-  console.log('[RSVPTimeGrid] Initial props:', {
-    location,
-    userTimes,
-    times,
-    selectedDate,
-    hasOnTimeSelection: !!onTimeSelection,
-  });
+  console.log('TIMES: ', times);
+  console.log('USERTIMES: ', userTimes);
+  const prevDateRef = useRef(selectedDate);
+  const prevLocationRef = useRef(location.name);
+  const prevTimesRef = useRef(times);
+
+  // Handles date or location changes
+  useEffect(() => {
+    const dateChanged = prevDateRef.current !== selectedDate;
+    const locationChanged = prevLocationRef.current !== location.name;
+
+    if (dateChanged || locationChanged) {
+      handleTimeSubmission(prevDateRef.current, prevTimesRef.current);
+    }
+
+    prevDateRef.current = selectedDate;
+    prevLocationRef.current = location.name;
+    prevTimesRef.current = times;
+  }, [selectedDate, location.name, times]);
+
+  // useEffect(() => {
+  //   console.log(
+  //     '[useEffect] prevDateRef.current:',
+  //     prevDateRef.current.toISOString()
+  //   );
+  //   console.log('[useEffect] selectedDate:', selectedDate.toISOString());
+
+  //   const dateChanged = prevDateRef.current !== selectedDate;
+  //   const locationChanged = prevLocationRef.current !== location.name;
+
+  //   if (dateChanged || locationChanged) {
+  //     handleTimeSubmission(prevDateRef.current);
+  //   }
+
+  //   prevDateRef.current = selectedDate;
+  //   prevLocationRef.current = location.name;
+  // }, [selectedDate, location.name]);
 
   const { setBottomAction } = useBottomActionBar();
 
-  const handleTimeSubmission = (dateToSave) => {
-    console.log(
-      '[handleTimeSubmission] Starting submission for date:',
-      dateToSave
-    );
-    console.log(
-      '[handleTimeSubmission] Current userSelectedSlots:',
-      userSelectedSlots
-    );
+  useEffect(() => {
+    setUserSelectedSlots(userTimes); // comes from parent
+  }, [userTimes, selectedDate, location.name]);
 
-    // Get all selected time slots with their IDs
-    const selectedTimeSlots = Object.entries(userSelectedSlots)
+  // useEffect(() => {
+  //   if (prevDateRef.current && prevDateRef.current !== selectedDate) {
+  //     handleTimeSubmission(prevDateRef.current, prevTimesRef.current);
+  //   }
+  //   prevDateRef.current = selectedDate;
+  //   prevTimesRef.current = times;
+  // }, [selectedDate, times]);
+
+  const handleTimeSubmission = (dateToSave, timesMap) => {
+    const selectedTimeSlots = Object.entries(userSelectedSlotsRef.current)
       .filter(([_, isSelected]) => isSelected)
       .map(([timeKey]) => {
         const [hour, minute] = timeKey.split('-');
@@ -41,12 +72,7 @@ export default function RSVPTimeGrid({
           2,
           '0'
         )}:00`;
-        const timeSlot = times[timeKey];
-        console.log('[handleTimeSubmission] Processing time slot:', {
-          timeKey,
-          timeString,
-          timeSlot,
-        });
+        const timeSlot = timesMap[timeKey];
         return {
           timeKey,
           eventTimeId: timeSlot?.id,
@@ -55,86 +81,20 @@ export default function RSVPTimeGrid({
       })
       .filter((slot) => slot.eventTimeId);
 
-    console.log(
-      '[handleTimeSubmission] Final selectedTimeSlots:',
-      selectedTimeSlots
-    );
+    console.log('[handleTimeSubmission]', {
+      dateToSave,
+      selectedTimeSlots,
+    });
 
-    // Call the parent's onTimeSelection with the selected times
-    if (onTimeSelection) {
-      console.log('[handleTimeSubmission] Calling onTimeSelection with:', {
-        selectedDate: dateToSave.toISOString(),
-        selectedTimes: selectedTimeSlots,
-      });
-      onTimeSelection({
-        selectedDate: dateToSave.toISOString(),
-        selectedTimes: selectedTimeSlots,
-      });
-    }
-
-    // Update the event state with selected times
-    console.log('[handleTimeSubmission] Updating event state');
-    setEvent((prevEvent) => {
-      console.log('[handleTimeSubmission] Previous event state:', prevEvent);
-      const updatedLocations = prevEvent.locations.map((loc) => {
-        if (loc.name !== location.name) return loc;
-
-        const updatedDates = loc.dates.map((dateObj) => {
-          const dateNormalized = new Date(dateObj.date);
-          dateNormalized.setUTCHours(0, 0, 0, 0);
-          const selectedDateNormalized = new Date(dateToSave);
-          selectedDateNormalized.setUTCHours(0, 0, 0, 0);
-
-          console.log('[handleTimeSubmission] Comparing dates:', {
-            dateNormalized: dateNormalized.toISOString(),
-            selectedDateNormalized: selectedDateNormalized.toISOString(),
-            isMatch:
-              dateNormalized.toISOString() ===
-              selectedDateNormalized.toISOString(),
-          });
-
-          if (
-            dateNormalized.toISOString() ===
-            selectedDateNormalized.toISOString()
-          ) {
-            const updatedDate = {
-              ...dateObj,
-              userSelectedTimes: selectedTimeSlots.map(
-                (slot) => slot.eventTimeId
-              ),
-            };
-            console.log(
-              '[handleTimeSubmission] Updated date object:',
-              updatedDate
-            );
-            return updatedDate;
-          }
-
-          return dateObj;
-        });
-
-        return {
-          ...loc,
-          dates: updatedDates,
-        };
-      });
-
-      const newEvent = {
-        ...prevEvent,
-        locations: updatedLocations,
-      };
-      console.log('[handleTimeSubmission] New event state:', newEvent);
-      return newEvent;
+    onTimeSelection?.({
+      selectedDate: dateToSave.toISOString(),
+      selectedTimes: selectedTimeSlots,
     });
   };
 
   // Save previous date's slots when date changes
   useEffect(() => {
     if (prevDateRef.current && prevDateRef.current !== selectedDate) {
-      console.log('[Date Change Effect] Date changed, saving previous date:', {
-        previousDate: prevDateRef.current,
-        newDate: selectedDate,
-      });
       handleTimeSubmission(prevDateRef.current);
     }
     prevDateRef.current = selectedDate;
@@ -142,51 +102,31 @@ export default function RSVPTimeGrid({
 
   const [userSelectedSlots, setUserSelectedSlots] = useState(userTimes);
   const [selectedSlots, setSelectedSlots] = useState(times);
-  const prevDateRef = useRef(selectedDate);
   const userSelectedSlotsRef = useRef(userSelectedSlots);
 
   useEffect(() => {
-    console.log(
-      '[userSelectedSlotsRef Effect] Updating ref:',
-      userSelectedSlots
-    );
     userSelectedSlotsRef.current = userSelectedSlots;
   }, [userSelectedSlots]);
 
   // Update selectedSlots when times changes
   useEffect(() => {
-    console.log('[Times Change Effect] Times prop changed:', {
-      oldTimes: selectedSlots,
-      newTimes: times,
-    });
     setSelectedSlots(times);
   }, [times]);
 
   // Update userSelectedSlots when userTimes changes
   useEffect(() => {
-    console.log('[UserTimes Change Effect] UserTimes prop changed:', {
-      oldTimes: userSelectedSlots,
-      newTimes: userTimes,
-    });
     setUserSelectedSlots(userTimes);
   }, [userTimes]);
 
   // Only update local state when user makes changes
   const toggleUserSlotSelection = (hour, minute) => {
     const key = slotKey(hour, minute);
-    console.log('[toggleUserSlotSelection] Toggling slot:', {
-      hour,
-      minute,
-      key,
-      currentState: userSelectedSlots[key],
-      timeSlot: times[key],
-    });
     setUserSelectedSlots((prev) => {
       const newState = {
         ...prev,
         [key]: !prev[key],
       };
-      console.log('[toggleUserSlotSelection] New state:', newState);
+      console.log('NEW STATE: ', newState);
       return newState;
     });
   };
@@ -234,10 +174,8 @@ export default function RSVPTimeGrid({
     if (!target) return;
 
     const [h, m] = target.dataset.slot.split('-').map(Number);
-    console.log('[TimeGrid] Pointer down on slot:', { hour: h, minute: m });
 
     dragTimeout.current = setTimeout(() => {
-      console.log('[TimeGrid] Starting drag selection');
       setIsDraggingSlots(true);
       draggedSlots.current = new Set();
       const key = slotKey(h, m);
@@ -254,14 +192,12 @@ export default function RSVPTimeGrid({
     const dataSlot = target?.getAttribute('data-slot');
     if (dataSlot && !draggedSlots.current.has(dataSlot)) {
       const [h, m] = dataSlot.split('-').map(Number);
-      console.log('[TimeGrid] Dragging over slot:', { hour: h, minute: m });
       draggedSlots.current.add(dataSlot);
       toggleUserSlotSelection(h, m);
     }
   };
 
   const handlePointerUp = () => {
-    console.log('[TimeGrid] Pointer up, ending drag selection');
     clearTimeout(dragTimeout.current);
     setIsDraggingSlots(false);
   };
@@ -278,16 +214,11 @@ export default function RSVPTimeGrid({
   });
 
   useEffect(() => {
-    console.log('[Bottom Action Effect] Setting up bottom action');
     setBottomAction({
       label: 'Continue',
       disabled: false,
       onClick: () => {
-        console.log(
-          '[Bottom Action Click] Storing selected slots:',
-          userSelectedSlotsRef.current
-        );
-        handleTimeSubmission(selectedDate);
+        handleTimeSubmission(selectedDate, times);
       },
     });
   }, [selectedDate]);

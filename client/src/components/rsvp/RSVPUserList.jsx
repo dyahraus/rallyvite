@@ -1,9 +1,9 @@
+'use client';
 import QuestionIcon from '@/assets/26.png';
 import ResponseIcon from '@/assets/24-ofcpy.PNG';
 import Image from 'next/image';
 
 export default function RSVPUserList({ event }) {
-  console.log(event);
   const users = event.users || [];
   // Placeholder for the current user
   const youUser = {

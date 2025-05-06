@@ -11,13 +11,7 @@ import { openInvite } from '@/api/events/openInvite';
 import { BottomActionBarProvider } from '@/context/BottomActionBarContext';
 import BottomActionBar from '@/components/navigation/BottomActionBar';
 
-const RSVPSection = ({
-  event,
-  setEvent,
-  currentIndex,
-  setCurrentIndex,
-  setTimeSelections,
-}) => {
+const RSVPSection = ({ event, setEvent, currentIndex, setCurrentIndex }) => {
   // Filter out 'No Location Selected' locations and ensure location objects are valid
   const validLocations =
     event?.locations?.filter(
@@ -39,7 +33,6 @@ const RSVPSection = ({
         <RSVPTimeOptions
           setEvent={setEvent}
           location={validLocations[currentIndex]}
-          setTimeSelections={setTimeSelections}
           event={event}
         />
       </div>
@@ -56,8 +49,6 @@ export default function EventPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(1);
 
-  const [timeSelections, setTimeSelections] = useState({});
-
   useEffect(() => {
     let isMounted = true;
 
@@ -65,13 +56,12 @@ export default function EventPage() {
       try {
         setLoading(true);
         const result = await findEventAndConvert(eventUuid);
-        console.log(result);
 
         if (!isMounted) return;
 
         if (result.status === 'SUCCESS') {
           setEvent(result.event);
-          console.log(event);
+          console.log(result.event);
         } else {
           setError(result.error);
         }
@@ -119,7 +109,6 @@ export default function EventPage() {
             setEvent={setEvent}
             currentIndex={currentIndex}
             setCurrentIndex={setCurrentIndex}
-            setTimeSelections={setTimeSelections}
           />
         )}
       </div>

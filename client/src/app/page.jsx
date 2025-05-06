@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Provider, useDispatch } from 'react-redux';
-import { store } from '../redux/store';
+import { useDispatch, Provider } from 'react-redux';
+
 import { setUser } from '@/redux/slices/userSlice';
 import { getCurrentUser } from '@/api/auth/getCurrentUser';
 import { BottomActionBarProvider } from '@/context/BottomActionBarContext';
-
+import { store } from '../redux/store';
 import MainNavBar from '@/components/navigation/MainNavBar';
 import BottomActionBar from '@/components/navigation/BottomActionBar';
 import New from '@/sections/new/New';

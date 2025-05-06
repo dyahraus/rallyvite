@@ -23,42 +23,23 @@ export default function DateCarousel({
   handleDateChange,
   locationDates,
 }) {
-  console.log('[DateCarousel] Component mounted with props:', {
-    selectedDate,
-    locationDates,
-  });
-
   const [currentDate, setCurrentDate] = useState(new Date());
   const [error, setError] = useState('');
 
   const visibleDates = getWeekRange(currentDate);
   const today = startOfDay(new Date());
 
-  console.log('[DateCarousel] Current state:', {
-    currentDate,
-    visibleDates,
-    today,
-  });
-
   const handlePrevWeek = () => {
-    console.log('[DateCarousel] Previous week requested');
     setCurrentDate(subDays(currentDate, 7));
   };
 
   const handleNextWeek = () => {
-    console.log('[DateCarousel] Next week requested');
     setCurrentDate(addDays(currentDate, 7));
   };
 
   const handleDateClick = (date) => {
-    console.log('[DateCarousel] Date clicked:', {
-      clickedDate: date,
-      isPast: isBefore(date, today),
-    });
-
     const dateToCheck = startOfDay(date);
     if (isBefore(dateToCheck, today)) {
-      console.log('[DateCarousel] Past date selected, showing error');
       setError('You cant select a past date.');
       setTimeout(() => setError(''), 2000);
       return;
@@ -69,9 +50,7 @@ export default function DateCarousel({
   return (
     <div className="flex flex-col items-center space-y-2 w-full">
       {/* Error Message (if any) */}
-      {error &&
-        (console.log('[DateCarousel] Error state:', error),
-        (<div className="text-red-500 text-xs">{error}</div>))}
+      {error && <div className="text-red-500 text-xs">{error}</div>}
 
       <div className="flex items-center space-x-1 w-full">
         {/* Left Arrow */}
@@ -92,21 +71,6 @@ export default function DateCarousel({
                 parsedAvailable.getUTCMonth() === date.getUTCMonth() &&
                 parsedAvailable.getUTCDate() === date.getUTCDate()
               );
-            });
-
-            console.log('[DateCarousel] Checking if available:', {
-              candidate: date.toISOString(),
-              availableDates: locationDates.map((d) =>
-                new Date(d).toISOString()
-              ),
-            });
-
-            console.log('[DateCarousel] Rendering date button:', {
-              date,
-              isSelected,
-              isCurrent,
-              isPast,
-              isAvailable,
             });
 
             return (
