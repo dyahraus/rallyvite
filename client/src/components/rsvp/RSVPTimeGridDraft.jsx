@@ -17,19 +17,42 @@ export default function RSVPTimeGrid({
   const prevLocationRef = useRef(location.name);
   const prevTimesRef = useRef(times);
 
-  // Handles date or location changes
+  // // Handles date or location changes
+  // useEffect(() => {
+  //   const dateChanged = prevDateRef.current !== selectedDate;
+  //   const locationChanged = prevLocationRef.current !== location.name;
+
+  //   if (dateChanged || locationChanged) {
+  //     handleTimeSubmission(prevDateRef.current, prevTimesRef.current);
+  //   }
+
+  //   prevDateRef.current = selectedDate;
+  //   prevLocationRef.current = location.name;
+  //   prevTimesRef.current = times;
+  // }, [selectedDate, location.name, times]);
+
   useEffect(() => {
     const dateChanged = prevDateRef.current !== selectedDate;
     const locationChanged = prevLocationRef.current !== location.name;
 
-    if (dateChanged || locationChanged) {
+    // Submit previous selections if date or location changed
+    if (
+      (dateChanged || locationChanged) &&
+      prevDateRef.current &&
+      prevLocationRef.current
+    ) {
       handleTimeSubmission(prevDateRef.current, prevTimesRef.current);
     }
 
+    // Load new selections
+    setUserSelectedSlots(userTimes);
+    userSelectedSlotsRef.current = userTimes;
+
+    // Update refs
     prevDateRef.current = selectedDate;
     prevLocationRef.current = location.name;
     prevTimesRef.current = times;
-  }, [selectedDate, location.name, times]);
+  }, [selectedDate, location.name, userTimes, times]);
 
   // useEffect(() => {
   //   console.log(
