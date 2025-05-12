@@ -12,6 +12,9 @@ CREATE TABLE events (
   duration VARCHAR(20),
   frequency VARCHAR(20),
   access_code VARCHAR(20) UNIQUE,
+  is_recurring BOOLEAN DEFAULT FALSE,
+  repeat_interval_weeks INT DEFAULT NULL,
+  date_completed TIMESTAMP DEFAULT NULL,
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

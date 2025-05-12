@@ -5,6 +5,8 @@ export const createAndAppendParticipant = async ({
   name,
   email,
   phone,
+  event,
+  response,
   eventUuid,
 }) => {
   try {
@@ -26,7 +28,7 @@ export const createAndAppendParticipant = async ({
       const eventUser = await appendParticipantToEvent(
         eventUuid,
         userUuid,
-        userTimes
+        response
       );
 
       return {

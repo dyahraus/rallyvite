@@ -10,6 +10,8 @@ import RSVPTimeOptions from '../../../components/rsvp/RSVPTimeOptionsDraft';
 import { openInvite } from '@/api/events/openInvite';
 import { BottomActionBarProvider } from '@/context/BottomActionBarContext';
 import BottomActionBar from '@/components/navigation/BottomActionBar';
+import RSVPBar from '../../../components/navigation/RSVPBar';
+import RSVPSummary from '../../../components/rsvp/RSVPSummary';
 
 const RSVPSection = ({ event, setEvent, currentIndex, setCurrentIndex }) => {
   // Filter out 'No Location Selected' locations and ensure location objects are valid
@@ -47,7 +49,8 @@ export default function EventPage() {
   const [error, setError] = useState(null);
   const [event, setEvent] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [currentIndex, setCurrentIndex] = useState(1);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [response, setResponse] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -101,20 +104,26 @@ export default function EventPage() {
   }
 
   return (
-    <BottomActionBarProvider>
+    <>
       <div className="min-h-screen flex flex-col items-center pt-6 pb-[64px]">
-        {currentStep === 1 && (
+        {currentStep === 1 ? (
           <RSVPSection
             event={event}
             setEvent={setEvent}
             currentIndex={currentIndex}
             setCurrentIndex={setCurrentIndex}
           />
+        ) : (
+          <RSVPSummary response={response} event={event} />
         )}
       </div>
 
-      {/* Fixed bottom bar, outside scrolling container */}
-      <BottomActionBar className="fixed bottom-0 w-full " />
-    </BottomActionBarProvider>
+      <div className="fixed bottom-0 w-full flex flex-col items-center">
+        {currentStep === 1 && (
+          <RSVPBar setCurrentStep={setCurrentStep} setResponse={setResponse} />
+        )}
+        <BottomActionBar />
+      </div>
+    </>
   );
 }

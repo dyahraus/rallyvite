@@ -12,7 +12,8 @@ import EventCarousel from '@/components/me/EventCarousel';
 
 export default function Me() {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user.data);
+  const currentUser = useSelector((state) => state.user.data);
+  const user = currentUser.currentUser;
   console.log(user);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');

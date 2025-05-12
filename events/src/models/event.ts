@@ -8,6 +8,9 @@ export interface Event {
   duration: string | null;
   frequency: string | null;
   access_code: string | null;
+  is_recurring: boolean;
+  repeat_interval_weeks: number | null;
+  date_completed: Date | null;
   date_created: Date;
-  lastModified: Date;
+  last_modified: Date;
 }

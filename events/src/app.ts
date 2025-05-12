@@ -11,6 +11,7 @@ import { appendOrganizerRouter } from './routes/append-organizer';
 import { appendParticipantRouter } from './routes/append-participant';
 import { findEventRouter } from './routes/find-event';
 import { findUserEventsRouter } from './routes/find-user-events';
+import { setRepeatIntervalRouter } from './routes/set-repeat-interval';
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(currentUser);
 app.use(createEventRouter);
 app.use(appendOrganizerRouter);
 app.use(appendParticipantRouter);
+app.use(setRepeatIntervalRouter);
 app.use(findEventRouter);
 app.use(findUserEventsRouter);
 

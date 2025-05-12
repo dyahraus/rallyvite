@@ -23,6 +23,7 @@ function HomeContent() {
     const loadUser = async () => {
       try {
         const user = await getCurrentUser();
+        console.log(user);
         dispatch(setUser(user));
       } catch (err) {
         console.error('Failed to load user:', err);
@@ -61,11 +62,5 @@ function HomeContent() {
 }
 
 export default function Home() {
-  return (
-    <Provider store={store}>
-      <BottomActionBarProvider>
-        <HomeContent />
-      </BottomActionBarProvider>
-    </Provider>
-  );
+  return <HomeContent />;
 }

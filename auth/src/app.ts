@@ -15,8 +15,10 @@ app.set('trust proxy', true); // traffic is being proxied through ingress inginx
 app.use(json());
 app.use(
   cookieSession({
-    signed: false, // not encrypted
-    // secure: process.env.NODE_ENV !== 'test', // only used if user is visiting over https connection
+    signed: false,
+    secure: true, // 🛡️ Only send cookies over HTTPS
+    sameSite: 'lax', // ⛔ Prevents CSRF, while allowing navigation with cookies
+    httpOnly: true, // 🔐 Prevents JavaScript access to the cookie
   })
 );
 
@@ -24,7 +26,6 @@ app.use(createUserRouter);
 app.use(currentUserRouter);
 app.use(loginUserRouter);
 app.use(editUserRouter);
-
 app.all('*', () => {
   throw new NotFoundError(); // express will capture this and send it off to the errorHandler middleware
 });

@@ -2,6 +2,6 @@
 import api from '@/utils/axios';
 
 export async function getCurrentUser() {
-  const response = await api.get('/users/current-user');
+  const response = await api.get('/users/currentuser');
   return response.data;
 }

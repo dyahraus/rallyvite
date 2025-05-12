@@ -89,3 +89,22 @@ export const addUserToEvent = async (
 
   return result.rows[0];
 };
+
+export const updateEventRepeatConfig = async (
+  eventId: number,
+  options: { is_recurring: boolean; repeat_interval_weeks: number }
+) => {
+  const result = await pool.query(
+    `
+    UPDATE events
+    SET is_recurring = $1,
+        repeat_interval_weeks = $2,
+        last_modified = NOW()
+    WHERE id = $3
+    RETURNING *;
+  `,
+    [options.is_recurring, options.repeat_interval_weeks, eventId]
+  );
+
+  return result.rows[0];
+};

@@ -8,6 +8,8 @@ import { useSelector, useDispatch } from 'react-redux';
 export default function RSVPTimeOptions({ location, setEvent, event }) {
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
   const prevDateRef = useRef(localSelectedDate);
+  console.log(location);
+  console.log(location.dates);
 
   const locationDates = location.dates.map((d) => new Date(d.date));
 

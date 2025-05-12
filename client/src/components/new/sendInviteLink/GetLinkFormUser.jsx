@@ -12,6 +12,58 @@ export default function GetLinkFormUser({ user, getTogetherName }) {
   const [countryCode, setCountryCode] = useState('+1'); // Default to US
   const [repeatInterval, setRepeatInterval] = useState('None');
 
+  useEffect(() => {
+    setBottomAction({
+      label: 'Share',
+      disabled: !name,
+      onClick: handleShare,
+      textColor: name ? 'text-rallyYellow' : undefined,
+    });
+  }, [name, email, mobileNumber, countryCode]);
+
+  const handleShare = async () => {
+    try {
+      const phone = countryCode + mobileNumber;
+
+      // First create and append the organizer
+      const organizerResult = await createAndAppendOrganizer({
+        name,
+        email,
+        phone,
+        eventUuid,
+      });
+
+      if (!organizerResult || organizerResult.status !== 'SUCCESS') {
+        throw new Error('Failed to create organizer');
+      }
+
+      // Then create the invite
+      const urlToShare = `event/${eventUuid}`;
+
+      // Try to use the native share API
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Join ${getTogetherName}!`,
+            text: 'Join my Rallyvite event 🎉',
+            url: urlToShare,
+          });
+        } catch (err) {
+          // If share fails, fallback to clipboard
+          await navigator.clipboard.writeText(urlToShare);
+          alert('Link copied to clipboard!');
+        }
+      } else {
+        // If share API not available, use clipboard
+        await navigator.clipboard.writeText(urlToShare);
+        alert('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to create invite. Please try again.');
+    }
+  };
+
   return (
     <div className="flex w-[90%] flex-col items-center mt-1">
       <h2 className="mb-2 text-2xl font-medium">{getTogetherName}</h2>

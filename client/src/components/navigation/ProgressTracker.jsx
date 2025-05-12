@@ -9,13 +9,13 @@ export default function ProgressTracker({ currentStep, setCurrentStep }) {
   const linkSectionCompleted = getTogether.linkSectionCompleted;
 
   const steps = [
-    { id: 1, label: 'Name Get-Together', completed: nameSectionCompleted },
+    { id: 1, label: 'Name', completed: nameSectionCompleted },
     {
       id: 2,
-      label: 'Poll Locations & Times',
+      label: 'Locations & Times',
       completed: locationSectionCompleted,
     }, // Shortened slightly to help on mobile
-    { id: 3, label: 'Send Invite Link', completed: linkSectionCompleted },
+    { id: 3, label: 'Share', completed: linkSectionCompleted },
   ];
 
   return (

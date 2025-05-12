@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import './globals.css';
 import clsx from 'clsx';
+import Providers from './providers';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -22,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="relative">
       <body className={clsx(poppins.className, 'antialiased bg-[#FFFFFF]')}>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

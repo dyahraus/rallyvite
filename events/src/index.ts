@@ -2,6 +2,7 @@ import { app } from './app';
 import { runMigrations } from './config/initDb';
 import { pool } from './config/db';
 import { connectConsumer, disconnectConsumer } from './config/kafka';
+import './cron/index';
 
 const start = async () => {
   if (!process.env.PG_USER) throw new Error('PG_USER must be defined');

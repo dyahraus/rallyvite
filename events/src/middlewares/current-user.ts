@@ -4,7 +4,9 @@ import jwt from 'jsonwebtoken';
 interface UserPayload {
   id: string;
   uuid: string;
+  name: string;
   email: string | null;
+  phone: string;
   is_guest: boolean;
   sessionToken: string;
 }
