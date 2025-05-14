@@ -6,6 +6,9 @@ import cookieSession from 'cookie-session';
 import { currentUser } from './middlewares/current-user';
 import { NotFoundError } from './errors/not-found-error';
 import { errorHandler } from './middlewares/error-handler';
+import { createChatRouter } from './routes/create-chat';
+import { getChatsByEventRouter } from './routes/get-chats-by-event';
+
 const app = express();
 
 app.set('trust proxy', true); // traffic is being proxied through ingress inginx express is aware of the proxy and trust traffic
@@ -20,6 +23,7 @@ app.use(
 app.use(currentUser);
 
 app.use(createChatRouter);
+app.use(getChatsByEventRouter);
 
 app.all('*', () => {
   throw new NotFoundError(); // express will capture this and send it off to the errorHandler middleware

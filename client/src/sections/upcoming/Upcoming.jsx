@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
 import UpcomingList from '@/components/upcoming/UpcomingList';
 import EditingEvent from '@/components/upcoming/EditingEvent';
+import OrganizerFinalize from '@/components/upcoming/OrganizerFinalize';
 
 const attendanceEmoji = {
   yes: ThumbsUp,
@@ -124,14 +125,26 @@ export default function Upcoming() {
   return (
     <div className="h-screen flex flex-col items-center pt-6 px-4 overflow-y-auto bg-white">
       <h2 className="font-bold text-xl mb-6">Upcoming Get-Togethers</h2>
+
       {showEditingEvent ? (
-        <EditingEvent event={selectedEvent} onClose={handleCloseEditing} />
+        selectedEvent.status === 1 && selectedEvent.role === 'organizer' ? (
+          <OrganizerFinalize />
+        ) : (
+          <EditingEvent event={selectedEvent} onClose={handleCloseEditing} />
+        )
       ) : (
         <UpcomingList
           events={events}
           selectedEvent={selectedEvent}
           onEventSelect={handleEventSelect}
         />
+      )}
+
+      {/* TODO: Fill in logic below — unclear from your snippet */}
+      {showEditingEvent && selectedEvent ? (
+        <div> {/* Add component or content here */} </div>
+      ) : (
+        <></>
       )}
     </div>
   );

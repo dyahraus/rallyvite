@@ -111,26 +111,26 @@ export const updateEventRepeatConfig = async (
 
 import { QueryResult } from 'pg';
 
-// Define the shape of a row returned by the SQL query
 interface EventTimeRow {
   event_time_id: number;
-  time: string; // "HH:mm:ss"
+  time: string;
   event_date_id: number;
-  date: string; // ISO string
+  date: string;
   location_id: number;
+  location_name: string;
 }
 
-// Block of continuous time slots
 interface TimeBlock {
   eventDateId: number;
   locationId: number;
+  locationName: string;
+  date: string;
   timeIds: number[];
   startTime: string;
   endTime: string;
-  yesCount?: number; // populated after ranking
+  yesCount?: number;
 }
 
-// Parse "2h 15m" -> 135
 function parseDuration(durationStr: string): number {
   const match = durationStr.match(/(?:(\d+)h)?\s*(?:(\d+)m)?/);
   if (!match) return 0;
@@ -139,15 +139,19 @@ function parseDuration(durationStr: string): number {
   return hours * 60 + minutes;
 }
 
-// Extract valid continuous time blocks by date/location
+function addMinutes(timeStr: string, minutes: number): string {
+  const date = new Date(`1970-01-01T${timeStr}Z`);
+  date.setUTCMinutes(date.getUTCMinutes() + minutes);
+  return date.toISOString().split('T')[1].slice(0, 8); // returns "HH:mm:ss"
+}
+
 function buildValidTimeBlocks(
   times: EventTimeRow[],
   slotCount: number
 ): TimeBlock[] {
   const blocks: TimeBlock[] = [];
-
-  // Group by date + location
   const grouped: Record<string, EventTimeRow[]> = {};
+
   for (const row of times) {
     const key = `${row.event_date_id}-${row.location_id}`;
     if (!grouped[key]) grouped[key] = [];
@@ -178,9 +182,11 @@ function buildValidTimeBlocks(
         blocks.push({
           eventDateId: block[0].event_date_id,
           locationId: block[0].location_id,
+          locationName: block[0].location_name,
+          date: block[0].date,
           timeIds: block.map((b) => b.event_time_id),
           startTime: block[0].time,
-          endTime: block[block.length - 1].time,
+          endTime: addMinutes(block[block.length - 1].time, 15),
         });
       }
     }
@@ -189,7 +195,6 @@ function buildValidTimeBlocks(
   return blocks;
 }
 
-// Main function to fetch and rank available blocks
 export const getEventOptions = async (
   eventId: number,
   durationStr: any
@@ -204,9 +209,11 @@ export const getEventOptions = async (
       et.time,
       et.event_date_id,
       ed.date,
-      ed.location_id
+      ed.location_id,
+      l.name AS location_name
     FROM event_times et
     JOIN event_dates ed ON et.event_date_id = ed.id
+    JOIN locations l ON ed.location_id = l.id
     WHERE ed.event_id = $1
     ORDER BY ed.date, ed.location_id, et.time ASC
   `,

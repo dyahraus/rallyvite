@@ -69,6 +69,7 @@ router.get('/api/events/user', async (req: Request, res: Response) => {
         const eventWithDetails: EventWithDetails = {
           ...event,
           role: event.role,
+          status: event.status,
           locations: locations.map((location) => ({
             ...location,
             dates: datesWithTimes

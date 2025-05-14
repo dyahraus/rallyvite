@@ -18,6 +18,14 @@ spec:
                 port:
                   number: 3000
 
+          - path: /api/chat/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: chat-service
+                port:
+                  number: 3000
+
           - path: /api/events/?(.*)
             pathType: Prefix
             backend:

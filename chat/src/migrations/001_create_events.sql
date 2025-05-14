@@ -5,13 +5,7 @@ DROP TABLE IF EXISTS events CASCADE;
 CREATE TABLE events (
   id SERIAL PRIMARY KEY,
   uuid UUID NOT NULL UNIQUE,
-  status SMALLINT DEFAULT 1,
   name VARCHAR(100) NOT NULL,
-  activity_id INT REFERENCES activities(id) ON DELETE SET NULL,
-  description VARCHAR(500),
-  duration VARCHAR(20),
-  frequency VARCHAR(20),
-  access_code VARCHAR(20) UNIQUE,
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

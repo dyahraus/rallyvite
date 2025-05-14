@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-service
+  template:
+    metadata:
+      labels:
+        app: chat-service
+    spec:
+      containers:
+        - name: chat-service
+          image: dyahraus/chat-service
+          env:
+            - name: PG_USER
+              value: 'postgres'
+            - name: PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-password
+                  key: PG_PASSWORD
+            - name: PG_HOST
+              value: 'chat-postgres-service' # The Postgres service in the cluster
+            - name: PG_PORT
+              value: '5432'
+            - name: PG_DATABASE
+              value: 'rallyvite_chat' # The database for the events service
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rallyvitejwt-secret
+                  key: JWT_KEY
+            - name: KAFKA_BROKERS
+              value: 'kafka:9092'
+            - name: KAFKA_CLIENT_ID
+              value: 'events-service'
+            - name: KAFKA_GROUP_ID
+              value: 'events-group'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+spec:
+  selector:
+    app: chat-service
+  ports:
+    - name: chat
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
