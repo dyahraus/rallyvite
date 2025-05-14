@@ -10,26 +10,14 @@ export default function RSVPTimeGrid({
   times,
   selectedDate,
   onTimeSelection,
+  setCurrentStep,
+  setResponse,
 }) {
   console.log('TIMES: ', times);
   console.log('USERTIMES: ', userTimes);
   const prevDateRef = useRef(selectedDate);
   const prevLocationRef = useRef(location.name);
   const prevTimesRef = useRef(times);
-
-  // // Handles date or location changes
-  // useEffect(() => {
-  //   const dateChanged = prevDateRef.current !== selectedDate;
-  //   const locationChanged = prevLocationRef.current !== location.name;
-
-  //   if (dateChanged || locationChanged) {
-  //     handleTimeSubmission(prevDateRef.current, prevTimesRef.current);
-  //   }
-
-  //   prevDateRef.current = selectedDate;
-  //   prevLocationRef.current = location.name;
-  //   prevTimesRef.current = times;
-  // }, [selectedDate, location.name, times]);
 
   useEffect(() => {
     const dateChanged = prevDateRef.current !== selectedDate;
@@ -53,38 +41,11 @@ export default function RSVPTimeGrid({
     prevLocationRef.current = location.name;
     prevTimesRef.current = times;
   }, [selectedDate, location.name, userTimes, times]);
-
-  // useEffect(() => {
-  //   console.log(
-  //     '[useEffect] prevDateRef.current:',
-  //     prevDateRef.current.toISOString()
-  //   );
-  //   console.log('[useEffect] selectedDate:', selectedDate.toISOString());
-
-  //   const dateChanged = prevDateRef.current !== selectedDate;
-  //   const locationChanged = prevLocationRef.current !== location.name;
-
-  //   if (dateChanged || locationChanged) {
-  //     handleTimeSubmission(prevDateRef.current);
-  //   }
-
-  //   prevDateRef.current = selectedDate;
-  //   prevLocationRef.current = location.name;
-  // }, [selectedDate, location.name]);
-
   const { setBottomAction } = useBottomActionBar();
 
   useEffect(() => {
     setUserSelectedSlots(userTimes); // comes from parent
   }, [userTimes, selectedDate, location.name]);
-
-  // useEffect(() => {
-  //   if (prevDateRef.current && prevDateRef.current !== selectedDate) {
-  //     handleTimeSubmission(prevDateRef.current, prevTimesRef.current);
-  //   }
-  //   prevDateRef.current = selectedDate;
-  //   prevTimesRef.current = times;
-  // }, [selectedDate, times]);
 
   const handleTimeSubmission = (dateToSave, timesMap) => {
     const selectedTimeSlots = Object.entries(userSelectedSlotsRef.current)
@@ -104,14 +65,26 @@ export default function RSVPTimeGrid({
       })
       .filter((slot) => slot.eventTimeId);
 
+    // Create a new date object at midnight UTC while preserving the local date
+    const localDate = new Date(dateToSave);
+    const normalized = new Date(
+      Date.UTC(
+        localDate.getUTCFullYear(),
+        localDate.getUTCMonth(),
+        localDate.getUTCDate()
+      )
+    );
+
     console.log('[handleTimeSubmission]', {
       dateToSave,
       selectedTimeSlots,
+      normalized,
     });
 
     onTimeSelection?.({
-      selectedDate: dateToSave.toISOString(),
+      selectedDate: normalized.toISOString(),
       selectedTimes: selectedTimeSlots,
+      locationName: prevLocationRef.current ?? location.name,
     });
   };
 
@@ -242,6 +215,8 @@ export default function RSVPTimeGrid({
       disabled: false,
       onClick: () => {
         handleTimeSubmission(selectedDate, times);
+        setCurrentStep(2);
+        setResponse('yes');
       },
     });
   }, [selectedDate]);

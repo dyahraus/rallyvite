@@ -108,3 +108,131 @@ export const updateEventRepeatConfig = async (
 
   return result.rows[0];
 };
+
+import { QueryResult } from 'pg';
+
+// Define the shape of a row returned by the SQL query
+interface EventTimeRow {
+  event_time_id: number;
+  time: string; // "HH:mm:ss"
+  event_date_id: number;
+  date: string; // ISO string
+  location_id: number;
+}
+
+// Block of continuous time slots
+interface TimeBlock {
+  eventDateId: number;
+  locationId: number;
+  timeIds: number[];
+  startTime: string;
+  endTime: string;
+  yesCount?: number; // populated after ranking
+}
+
+// Parse "2h 15m" -> 135
+function parseDuration(durationStr: string): number {
+  const match = durationStr.match(/(?:(\d+)h)?\s*(?:(\d+)m)?/);
+  if (!match) return 0;
+  const hours = parseInt(match[1] || '0', 10);
+  const minutes = parseInt(match[2] || '0', 10);
+  return hours * 60 + minutes;
+}
+
+// Extract valid continuous time blocks by date/location
+function buildValidTimeBlocks(
+  times: EventTimeRow[],
+  slotCount: number
+): TimeBlock[] {
+  const blocks: TimeBlock[] = [];
+
+  // Group by date + location
+  const grouped: Record<string, EventTimeRow[]> = {};
+  for (const row of times) {
+    const key = `${row.event_date_id}-${row.location_id}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(row);
+  }
+
+  for (const rows of Object.values(grouped)) {
+    const sortedRows = rows.sort((a, b) => a.time.localeCompare(b.time));
+
+    for (let i = 0; i <= sortedRows.length - slotCount; i++) {
+      const block = sortedRows.slice(i, i + slotCount);
+
+      let isValid = true;
+      for (let j = 1; j < block.length; j++) {
+        const prev = block[j - 1].time;
+        const curr = block[j].time;
+        const diff =
+          (new Date(`1970-01-01T${curr}Z`).getTime() -
+            new Date(`1970-01-01T${prev}Z`).getTime()) /
+          (1000 * 60);
+        if (diff !== 15) {
+          isValid = false;
+          break;
+        }
+      }
+
+      if (isValid) {
+        blocks.push({
+          eventDateId: block[0].event_date_id,
+          locationId: block[0].location_id,
+          timeIds: block.map((b) => b.event_time_id),
+          startTime: block[0].time,
+          endTime: block[block.length - 1].time,
+        });
+      }
+    }
+  }
+
+  return blocks;
+}
+
+// Main function to fetch and rank available blocks
+export const getEventOptions = async (
+  eventId: number,
+  durationStr: any
+): Promise<TimeBlock[]> => {
+  const durationMin = parseDuration(durationStr);
+  const slotCount = durationMin / 15;
+
+  const { rows }: QueryResult<EventTimeRow> = await pool.query(
+    `
+    SELECT
+      et.id AS event_time_id,
+      et.time,
+      et.event_date_id,
+      ed.date,
+      ed.location_id
+    FROM event_times et
+    JOIN event_dates ed ON et.event_date_id = ed.id
+    WHERE ed.event_id = $1
+    ORDER BY ed.date, ed.location_id, et.time ASC
+  `,
+    [eventId]
+  );
+
+  const blocks = buildValidTimeBlocks(rows, slotCount);
+
+  const ranked = await Promise.all(
+    blocks.map(async (block) => {
+      const { rows: users }: QueryResult<{ user_id: number }> =
+        await pool.query(
+          `
+        SELECT user_id
+        FROM user_event_times
+        WHERE event_time_id = ANY($1::int[])
+        GROUP BY user_id
+        HAVING COUNT(*) = $2
+      `,
+          [block.timeIds, block.timeIds.length]
+        );
+
+      return { ...block, yesCount: users.length };
+    })
+  );
+
+  ranked.sort((a, b) => (b.yesCount ?? 0) - (a.yesCount ?? 0));
+  return ranked;
+};

@@ -47,6 +47,8 @@ export default function TimeGrid({
     slotsToSave = selectedSlotsRef.current,
     locationName
   ) => {
+    const normalized = new Date(dateToSave);
+    normalized.setUTCHours(0, 0, 0, 0);
     console.log('[DATE_DEBUG] Submitting times:', {
       dateBeingSaved: dateToSave?.toISOString(),
       currentDate: selectedDate?.toISOString(),
@@ -56,7 +58,7 @@ export default function TimeGrid({
     });
     dispatch(
       setTimes({
-        selectedDate: dateToSave.toISOString(),
+        selectedDate: normalized.toISOString(),
         selectedSlots: slotsToSave,
         locationName,
       })

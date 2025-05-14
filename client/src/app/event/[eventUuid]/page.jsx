@@ -13,7 +13,14 @@ import BottomActionBar from '@/components/navigation/BottomActionBar';
 import RSVPBar from '../../../components/navigation/RSVPBar';
 import RSVPSummary from '../../../components/rsvp/RSVPSummary';
 
-const RSVPSection = ({ event, setEvent, currentIndex, setCurrentIndex }) => {
+const RSVPSection = ({
+  event,
+  setEvent,
+  currentIndex,
+  setCurrentIndex,
+  setCurrentStep,
+  setResponse,
+}) => {
   // Filter out 'No Location Selected' locations and ensure location objects are valid
   const validLocations =
     event?.locations?.filter(
@@ -36,6 +43,8 @@ const RSVPSection = ({ event, setEvent, currentIndex, setCurrentIndex }) => {
           setEvent={setEvent}
           location={validLocations[currentIndex]}
           event={event}
+          setCurrentStep={setCurrentStep}
+          setResponse={setResponse}
         />
       </div>
     </>
@@ -112,6 +121,8 @@ export default function EventPage() {
             setEvent={setEvent}
             currentIndex={currentIndex}
             setCurrentIndex={setCurrentIndex}
+            setCurrentStep={setCurrentStep}
+            setResponse={setResponse}
           />
         ) : (
           <RSVPSummary response={response} event={event} />

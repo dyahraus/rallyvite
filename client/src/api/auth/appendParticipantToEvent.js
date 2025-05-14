@@ -1,11 +1,15 @@
 import axios from 'axios';
 
-export const appendParticipantToEvent = async (eventId, userId) => {
+export const appendParticipantToEvent = async (
+  userUuid,
+  event,
+  rsvpResponse
+) => {
   try {
     const response = await axios.post('/api/events/append-participant', {
-      eventId,
-      userId,
-      userTimes,
+      userUuid,
+      event,
+      rsvpResponse,
     });
     return response.data;
   } catch (error) {

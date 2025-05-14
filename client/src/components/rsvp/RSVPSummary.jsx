@@ -5,6 +5,8 @@ import Maybe from '@/assets/16.png';
 import Cry from '@/assets/17.png';
 import ThumbsUp from '@/assets/15.png';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
+import { useRouter } from 'next/navigation';
+import { createAndAppendParticipant } from '../../api/auth/createAndAppendParticipant';
 
 export default function RSVPSummary({ response, event }) {
   const [name, setName] = useState('');
@@ -12,54 +14,45 @@ export default function RSVPSummary({ response, event }) {
   const [mobileNumber, setMobileNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+1'); // Default to US
 
+  const router = useRouter();
+
   const { setBottomAction } = useBottomActionBar();
 
   useEffect(() => {
     setBottomAction({
       label: 'Complete',
       disabled: !name,
-      onClick: handleShare,
+      onClick: handleRSVP,
       textColor: name ? 'text-rallyYellow' : undefined,
     });
   }, [name, email, mobileNumber, countryCode]);
 
-  const handleShare = async () => {
-    // try {
-    //   const phone = countryCode + mobileNumber;
-    //   // First create and append the organizer
-    //   const organizerResult = await createAndAppendOrganizer({
-    //     name,
-    //     email,
-    //     phone,
-    //     eventUuid,
-    //   });
-    //   if (!organizerResult || organizerResult.status !== 'SUCCESS') {
-    //     throw new Error('Failed to create organizer');
-    //   }
-    //   // Then create the invite
-    //   const urlToShare = `event/${eventUuid}`;
-    //   // Try to use the native share API
-    //   if (navigator.share) {
-    //     try {
-    //       await navigator.share({
-    //         title: `Join ${getTogetherName}!`,
-    //         text: 'Join my Rallyvite event 🎉',
-    //         url: urlToShare,
-    //       });
-    //     } catch (err) {
-    //       // If share fails, fallback to clipboard
-    //       await navigator.clipboard.writeText(urlToShare);
-    //       alert('Link copied to clipboard!');
-    //     }
-    //   } else {
-    //     // If share API not available, use clipboard
-    //     await navigator.clipboard.writeText(urlToShare);
-    //     alert('Link copied to clipboard!');
-    //   }
-    // } catch (error) {
-    //   console.error('Error:', error);
-    //   alert('Failed to create invite. Please try again.');
-    // }
+  const handleRSVP = async () => {
+    try {
+      const phone = countryCode + mobileNumber;
+      console.log('Name: ', name);
+      console.log('Email: ', email);
+      console.log('Phone: ', phone);
+      console.log('event: ', event);
+      console.log('Response: ', response);
+
+      // First create and append the organizer
+      const rsvpResult = await createAndAppendParticipant({
+        name,
+        email,
+        phone,
+        event,
+        rsvpResponse: response,
+      });
+      if (!rsvpResult || rsvpResult.status !== 'SUCCESS') {
+        throw new Error('Failed to create organizer');
+      }
+
+      router.push('/');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to RSVP. Please try again.');
+    }
   };
 
   return (
@@ -133,7 +126,7 @@ export default function RSVPSummary({ response, event }) {
         ) : response === 'maybe' ? (
           <>
             <Image
-              src={No}
+              src={Maybe}
               className="ml-2"
               height={200}
               width={200}

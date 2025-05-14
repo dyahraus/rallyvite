@@ -5,7 +5,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import RSVPUserList from '@/components/rsvp/RSVPUserList';
 import { useSelector, useDispatch } from 'react-redux';
 
-export default function RSVPTimeOptions({ location, setEvent, event }) {
+export default function RSVPTimeOptions({
+  location,
+  setEvent,
+  event,
+  setCurrentStep,
+  setResponse,
+}) {
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
   const prevDateRef = useRef(localSelectedDate);
   console.log(location);
@@ -21,12 +27,12 @@ export default function RSVPTimeOptions({ location, setEvent, event }) {
 
   const handleTimeSelection = (selection) => {
     console.log('[RSVPOptions] Received selection:', selection);
-    const { selectedDate, selectedTimes } = selection;
+    const { selectedDate, selectedTimes, locationName } = selection;
 
     // Update final state in event object
     setEvent((prevEvent) => {
       const updatedLocations = prevEvent.locations.map((loc) => {
-        if (loc.name !== location.name) return loc;
+        if (loc.name !== locationName) return loc;
 
         const updatedDates = loc.dates.map((dateObj) => {
           const normalizedDate = new Date(dateObj.date);
@@ -131,6 +137,8 @@ export default function RSVPTimeOptions({ location, setEvent, event }) {
           userTimes={userTimes}
           selectedDate={localSelectedDate}
           onTimeSelection={handleTimeSelection}
+          setCurrentStep={setCurrentStep}
+          setResponse={setResponse}
         />
         <RSVPUserList event={event} />
       </div>
