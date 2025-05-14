@@ -24,6 +24,8 @@ export default function Upcoming() {
   const [error, setError] = useState(null);
   const [showEditingEvent, setShowEditingEvent] = useState(false);
 
+  console.log('Selected Event: ', selectedEvent);
+
   const handleCloseEditing = () => {
     setShowEditingEvent(false);
     setSelectedEvent(null);
@@ -54,6 +56,9 @@ export default function Upcoming() {
             id: event.id,
             name: event.name,
             location: firstLocation?.name || 'Location TBD',
+            status: event.status,
+            role: event.role,
+            uuid: event.uuid,
             date: firstDate
               ? new Date(firstDate.date).toLocaleDateString('en-US', {
                   weekday: 'long',
@@ -124,11 +129,12 @@ export default function Upcoming() {
 
   return (
     <div className="h-screen flex flex-col items-center pt-6 px-4 overflow-y-auto bg-white">
-      <h2 className="font-bold text-xl mb-6">Upcoming Get-Togethers</h2>
-
       {showEditingEvent ? (
         selectedEvent.status === 1 && selectedEvent.role === 'organizer' ? (
-          <OrganizerFinalize />
+          <OrganizerFinalize
+            event={selectedEvent}
+            onClose={handleCloseEditing}
+          />
         ) : (
           <EditingEvent event={selectedEvent} onClose={handleCloseEditing} />
         )
@@ -138,13 +144,6 @@ export default function Upcoming() {
           selectedEvent={selectedEvent}
           onEventSelect={handleEventSelect}
         />
-      )}
-
-      {/* TODO: Fill in logic below — unclear from your snippet */}
-      {showEditingEvent && selectedEvent ? (
-        <div> {/* Add component or content here */} </div>
-      ) : (
-        <></>
       )}
     </div>
   );

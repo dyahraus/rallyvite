@@ -14,6 +14,7 @@ const attendanceEmoji = {
 };
 
 export default function EditingEvent({ event, onClose }) {
+  console.log('editing event');
   const { data: currentUser, loading: userLoading } = useSelector(
     (state) => state.user
   );

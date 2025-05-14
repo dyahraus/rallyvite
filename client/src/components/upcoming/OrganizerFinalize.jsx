@@ -30,7 +30,7 @@ export default function OrganizerFinalize({ event, onClose }) {
     const fetchOptions = async () => {
       try {
         const result = await getEventFinalize(event.uuid);
-        setGroupedBlocks(result);
+        setGroupedBlocks(result?.event ?? []);
       } catch (err) {
         console.error('Failed to fetch event finalize options:', err);
       }
@@ -47,54 +47,64 @@ export default function OrganizerFinalize({ event, onClose }) {
 
   const currentBlocks = groupedBlocks[currentPage] || [];
 
+  console.log('Grouped Blocks:', groupedBlocks);
+  console.log('Current Page:', currentPage);
+  console.log('Current Blocks:', currentBlocks);
+
   return (
     <div className="flex flex-col items-center gap-4">
-      {currentBlocks.map((block, index) => {
-        const formattedDate = format(new Date(block.date), 'EEEE, MMMM d');
-        const formattedStart = format(
-          new Date(`1970-01-01T${block.startTime}Z`),
-          'h:mm a'
-        );
-        const formattedEnd = format(
-          new Date(`1970-01-01T${block.endTime}Z`),
-          'h:mm a'
-        );
+      <h2 className="font-bold text-xl mb-2">{event.name}</h2>
 
-        return (
-          <div
-            key={`${block.eventDateId}-${block.startTime}-${index}`}
-            className="border rounded-xl shadow p-4 w-[360px] text-center bg-white"
-          >
-            <div className="font-bold text-sm text-gray-800">
-              {formattedDate}
-            </div>
-            <div className="text-sm text-gray-600">
-              {formattedStart} — {formattedEnd}
-            </div>
-            <div className="mt-1 text-sm font-medium text-gray-700">
-              {block.locationName}
-            </div>
+      {/* ✅ Scrollable list container */}
+      <div className="flex flex-col gap-4 overflow-y-auto max-h-[400px] px-2 w-full items-center">
+        {currentBlocks.map((block, index) => {
+          const formattedDate = format(new Date(block.date), 'EEEE, MMMM d');
+          const formattedStart = format(
+            new Date(`1970-01-01T${block.startTime}Z`),
+            'h:mm a'
+          );
+          const formattedEnd = format(
+            new Date(`1970-01-01T${block.endTime}Z`),
+            'h:mm a'
+          );
 
-            <div className="flex justify-center gap-2 mt-3">
-              {mockParticipants.map((p, i) => (
-                <div key={i} className="relative w-10 h-10">
-                  <Image
-                    src={p.avatarUrl}
-                    alt={p.name}
-                    className="rounded-full border-2 border-blue-500"
-                    width={40}
-                    height={40}
-                  />
-                  <span className="absolute -top-1 -right-1 text-sm">
-                    {p.emoji}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
+          return (
+            <div
+              key={`${block.eventDateId}-${block.startTime}-${index}`}
+              className="border rounded-xl shadow p-4 w-[360px] text-center bg-white"
+            >
+              <div className="font-bold text-sm text-gray-800">
+                {formattedDate}
+              </div>
+              <div className="text-sm text-gray-600">
+                {formattedStart} — {formattedEnd}
+              </div>
+              <div className="mt-1 text-sm font-medium text-gray-700">
+                {block.locationName}
+              </div>
 
+              <div className="flex justify-center gap-2 mt-3">
+                {mockParticipants.map((p, i) => (
+                  <div key={i} className="relative w-10 h-10">
+                    <Image
+                      src={p.avatarUrl}
+                      alt={p.name}
+                      className="rounded-full border-2 border-blue-500"
+                      width={40}
+                      height={40}
+                    />
+                    <span className="absolute -top-1 -right-1 text-sm">
+                      {p.emoji}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Navigation button */}
       <button
         onClick={handleNext}
         disabled={currentPage >= groupedBlocks.length - 1}
