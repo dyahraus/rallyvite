@@ -14,6 +14,10 @@ CREATE TABLE events (
   access_code VARCHAR(20) UNIQUE,
   is_recurring BOOLEAN DEFAULT FALSE,
   repeat_interval_weeks INT DEFAULT NULL,
+  final_event_date_id INTEGER REFERENCES event_dates(id) ON DELETE SET NULL,
+  final_location_id INTEGER REFERENCES locations(id) ON DELETE SET NULL,
+  final_start_time TIME,
+  final_end_time TIME,
   date_completed TIMESTAMP DEFAULT NULL,
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP

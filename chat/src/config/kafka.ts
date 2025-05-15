@@ -2,12 +2,12 @@ import { Kafka } from 'kafkajs';
 import { pool } from './db';
 
 const kafka = new Kafka({
-  clientId: 'events-service',
+  clientId: 'chat-service',
   brokers: ['kafka-controller.default.svc.cluster.local:9092'], // ✅ use correct DNS
 });
 
 export const consumer = kafka.consumer({
-  groupId: 'events-group',
+  groupId: 'chat-group',
 });
 
 export const connectConsumer = async () => {

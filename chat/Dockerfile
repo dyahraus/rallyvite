@@ -12,7 +12,7 @@ RUN npm install
 COPY . ./
 
 # Expose the port for the events service
-EXPOSE 5000
+EXPOSE 3002
 
 # Command to run the events service
 CMD ["npm", "start"]

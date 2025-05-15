@@ -42,7 +42,7 @@ export default function EditingEvent({ event, onClose }) {
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch(`/api/chats/event/${event.id}`);
+        const response = await fetch(`/api/chats/event/${event.uuid}`);
 
         if (!response.ok) {
           throw new Error('Failed to fetch messages');

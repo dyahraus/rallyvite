@@ -13,6 +13,7 @@ import { findEventRouter } from './routes/find-event';
 import { findUserEventsRouter } from './routes/find-user-events';
 import { setRepeatIntervalRouter } from './routes/set-repeat-interval';
 import { finalizeOptionsRouter } from './routes/get-event-options';
+import { finalizeEventDetailsRouter } from './routes/finalize-event-details';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(setRepeatIntervalRouter);
 app.use(finalizeOptionsRouter);
 app.use(findEventRouter);
 app.use(findUserEventsRouter);
+app.use(finalizeEventDetailsRouter);
 
 app.all('*', () => {
   throw new NotFoundError(); // express will capture this and send it off to the errorHandler middleware
