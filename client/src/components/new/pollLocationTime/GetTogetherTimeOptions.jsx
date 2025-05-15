@@ -1,6 +1,5 @@
 'use client';
 import TimeGrid from './TimeGrid';
-import FinalTimeGrid from './FinalTimeGrid';
 import React, { useState, useRef, useEffect } from 'react';
 import DateCarousel from './DateCarousel';
 import UserList from './UserList';
@@ -44,20 +43,24 @@ export default function GetTogetherTimeOptions({ setCurrentStep, activeStep }) {
   console.log('Final times being passed to TimeGrid:', times);
 
   return (
-    <div className="flex w-[90%] flex-col items-center mt-5">
-      <h2 className="mb-2">Get-Together Time Option(s)</h2>
+    <div className="flex w-[95%] flex-col items-center mt-5">
+      <h2 className="mb-1">Get-Together Time Option(s)</h2>
       <DateCarousel
         selectedDate={localSelectedDate}
         handleDateChange={handleDateChange}
       />
-      <div className="flex flex-row">
-        <TimeGrid
-          times={times}
-          selectedDate={localSelectedDate}
-          setCurrentStep={setCurrentStep}
-          activeStep={activeStep}
-        />
-        <UserList />
+      <div className="flex flex-row w-full items-start mt-1">
+        <div className=" flex-grow min-w-0">
+          <TimeGrid
+            times={times}
+            selectedDate={localSelectedDate}
+            setCurrentStep={setCurrentStep}
+            activeStep={activeStep}
+          />
+        </div>
+        <div className="w-[150px] shrink-0  ">
+          <UserList />
+        </div>
       </div>
     </div>
   );

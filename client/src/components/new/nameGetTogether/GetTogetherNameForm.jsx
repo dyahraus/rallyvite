@@ -20,7 +20,7 @@ export default function GetTogetherNameForm({
   };
 
   return (
-    <div className="flex w-[90%] flex-col items-center mt-5">
+    <div className="flex w-[90%] flex-col items-center mt-1">
       <h2 className="mb-2">Get-Together Activity Name</h2>
 
       <form onSubmit={handleSubmit} className="w-full relative">
@@ -29,7 +29,7 @@ export default function GetTogetherNameForm({
           value={name}
           onChange={handleChange}
           placeholder="Ex: Pickleball & Beers"
-          className="w-full border border-gray-300 rounded-full p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue"
+          className="w-full border border-gray-300 rounded-xl p-3 pr-[120px] focus:outline-none focus:ring-2 focus:ring-rallyBlue"
         />
 
         {/* Use AnimatePresence for smooth enter/exit transitions */}
@@ -42,7 +42,7 @@ export default function GetTogetherNameForm({
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
               type="button"
-              className="absolute inset-y-1 right-2 h-full bg-rallyYellow text-gray-800 font-medium px-6 py-2 rounded-full shadow hover:bg-rallyYellow"
+              className="absolute inset-y-1 right-1 h-full bg-rallyYellow text-gray-800 text-xs font-medium px-1 py-1 rounded-full shadow hover:bg-rallyYellow"
               style={{ minWidth: '110px', height: '40px' }}
             >
               Need Inspo?
@@ -56,7 +56,7 @@ export default function GetTogetherNameForm({
               transition={{ duration: 0.2, ease: 'easeOut' }}
               type="button"
               onClick={handleSubmit}
-              className="absolute inset-y-1 right-2 bg-rallyBlue text-white font-medium py-2 px-6 rounded-full shadow hover:bg-rallyBlue"
+              className="absolute inset-y-1 right-1 bg-rallyBlue text-white font-medium text-sm py-1 px-1 rounded-full shadow hover:bg-rallyBlue"
               style={{ minWidth: '110px', height: '40px' }}
             >
               Next

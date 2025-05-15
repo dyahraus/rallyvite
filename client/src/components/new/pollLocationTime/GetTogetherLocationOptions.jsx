@@ -197,7 +197,7 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
   };
 
   return (
-    <div className="flex w-[90%] flex-col items-center mt-5 relative">
+    <div className="flex w-[90%] flex-col items-center mt-1 relative">
       <h2 className="mb-2">Get-Together Location(s)</h2>
 
       <form onSubmit={handleSubmit} className="w-full relative">
@@ -206,12 +206,12 @@ export default function GetTogetherLocationOptions({ onLocationSubmit }) {
           value={locationValue}
           onChange={handleLocationChange}
           placeholder="Ex: Dave's Bar"
-          className="w-full border border-gray-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="w-full border border-gray-300 rounded-xl p-3 pr-[120px] focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
           type="button"
           disabled={locationValue.trim() === ''}
-          className={`absolute inset-y-1 right-2 font-medium py-2 px-6 rounded-full shadow bg-rallyBlue hover:bg-rallyBlue ${
+          className={`absolute inset-y-1 right-2 font-medium py-1 px-1 rounded-full shadow bg-rallyBlue hover:bg-rallyBlue ${
             locationValue.trim() === '' ? 'text-gray-50' : 'text-rallyYellow'
           }`}
           style={{ minWidth: '110px', height: '40px' }}

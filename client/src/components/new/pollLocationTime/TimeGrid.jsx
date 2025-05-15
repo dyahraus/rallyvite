@@ -157,6 +157,8 @@ export default function TimeGrid({
 
   const period = (hour) => (hour < 12 ? 'A' : 'P');
 
+  //DRAG SELECT IMPLEMENTATION
+
   // Scroll handling
   const handleScroll = () => {
     const grid = gridRef.current;
@@ -252,7 +254,7 @@ export default function TimeGrid({
   }, [selectedSlots]);
 
   return (
-    <div className="relative flex w-[60%] max-w-md h-96 mt-4 shadow-sm">
+    <div className="relative flex w-[95%] max-w-md h-96 mt-3 shadow-sm">
       <div
         ref={gridRef}
         onScroll={handleScroll}
@@ -269,18 +271,23 @@ export default function TimeGrid({
             className="flex w-full items-center border-b border-black"
           >
             <div
-              className={`w-14 h-32 flex items-center justify-center border border-gray-200 font-bold text-5xl ${
+              className={`w-12 h-32 flex flex-col items-center justify-center border border-gray-200 ${
                 isHourSelected(hour) ? 'bg-rallyYellow' : ''
               }`}
             >
-              {formattedHour(hour)}
+              <div className="text-4xl font-bold leading-none">
+                {formattedHour(hour)}
+              </div>
+              <div className="text-sm font-semibold text-gray-600 mt-1">
+                {period(hour) === 'A' ? 'AM' : 'PM'}
+              </div>
             </div>
 
-            <div className="flex-1 grid grid-rows-4 divide-y divide-gray-300">
+            <div className="flex-1 min-w-0 grid grid-rows-4 divide-y divide-gray-300">
               {minutes.map((minute) => (
                 <div
                   key={minute}
-                  className={`h-8 flex items-center justify-center text-xs cursor-pointer select-none text-black ${
+                  className={`h-8 flex items-center justify-center text-xs font-semibold cursor-pointer select-none text-black ${
                     selectedSlots[slotKey(hour, minute)] ? 'bg-rallyYellow' : ''
                   }`}
                   data-slot={`${hour}-${minute}`}
@@ -289,14 +296,6 @@ export default function TimeGrid({
                   {minute === 0 ? ':00' : `:${minute}`}
                 </div>
               ))}
-            </div>
-
-            <div
-              className={`w-14 h-32 flex items-center justify-center border border-gray-200 font-bold text-5xl ${
-                isHourSelected(hour) ? 'bg-rallyYellow' : ''
-              }`}
-            >
-              {period(hour)}
             </div>
           </div>
         ))}

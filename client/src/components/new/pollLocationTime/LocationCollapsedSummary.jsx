@@ -2,14 +2,14 @@ import Image from 'next/image';
 import { PencilSquareIcon } from '@heroicons/react/24/outline';
 import Lines from '@/assets/36-ofcpy.PNG';
 
-export default function CollapsedSummary({
+export default function LocationCollapsedSummary({
   label,
   value,
   onEdit,
   isCompleted,
 }) {
   return (
-    <div className="flex w-[90%] flex-col items-center mt-6">
+    <div className="flex w-[90%] flex-col items-center mt-4">
       <h2 className="mb-0">{label}</h2>
       <div className="text-xl pb-0 font-semibold text-gray-700">{value}</div>
       <button

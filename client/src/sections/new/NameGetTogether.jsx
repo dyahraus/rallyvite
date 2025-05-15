@@ -4,6 +4,7 @@ import ProgressTracker from '../../components/navigation/ProgressTracker';
 import GetTogetherNameForm from '../../components/new/nameGetTogether/GetTogetherNameForm';
 import GetTogetherDescriptionForm from '../../components/new/nameGetTogether/GetTogetherDescriptionForm';
 import GetTogetherDurationForm from '../../components/new/nameGetTogether/GetTogetherDurationForm';
+import NameCollapsedSummary from '../../components/new/nameGetTogether/NameCollapsedSummary';
 import CollapsedSummary from '../../components/new/nameGetTogether/CollapsedSummary';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
 import { useSelector, useDispatch } from 'react-redux';
@@ -57,7 +58,7 @@ export default function NameGetTogether({ setCurrentStep }) {
           }}
         />
       ) : (
-        <CollapsedSummary
+        <NameCollapsedSummary
           label="Get-Together Activity Name"
           value={name}
           onEdit={() => setActiveStep('name')}

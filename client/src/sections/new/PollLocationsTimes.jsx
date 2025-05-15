@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import GetTogetherLocationOptions from '../../components/new/pollLocationTime/GetTogetherLocationOptions';
 import GetTogetherTimeOptions from '../../components/new/pollLocationTime/GetTogetherTimeOptions';
+import LocationCollapsedSummary from '@/components/new/pollLocationTime/LocationCollapsedSummary';
+import NameCollapsedSummary from '@/components/new/nameGetTogether/NameCollapsedSummary';
 import CollapsedSummary from '@/components/new/nameGetTogether/CollapsedSummary';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { useSelector, useDispatch } from 'react-redux';
@@ -76,7 +78,7 @@ export default function PollLocationsTimes({ setCurrentStep }) {
     }
 
     return (
-      <CollapsedSummary
+      <NameCollapsedSummary
         label="Get-Together Location(s)"
         onEdit={() => setActiveStep('location')}
         isCompleted={true}
@@ -96,7 +98,7 @@ export default function PollLocationsTimes({ setCurrentStep }) {
           activeStep={activeStep}
         />
       ) : (
-        <CollapsedSummary
+        <LocationCollapsedSummary
           label="Get-Together Time Option(s)"
           onEdit={() => {
             setActiveStep('times');

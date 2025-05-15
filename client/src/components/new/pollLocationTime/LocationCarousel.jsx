@@ -89,7 +89,7 @@ export default function LocationCarousel({
                   : 'text-gray-400 text-xs opacity-60'
               }`}
             >
-              <h3 className="text-lg">{location?.name || ''}</h3>
+              <h3 className="text-md">{location?.name || ''}</h3>
             </div>
           ))}
         </div>
@@ -110,8 +110,8 @@ export default function LocationCarousel({
             setActiveStep('addLoc');
           }}
         >
-          <PlusCircleIcon className="w-10 h-10 stroke-1" />
-          <span className="ml-2 text-sm">Add Another Location Option</span>
+          <PlusCircleIcon className="w-7 h-7 mb-1 stroke-1" />
+          <span className="ml-2 text-xs">Add Another Location Option</span>
         </div>
       ) : (
         <div className="flex w-full justify-center">
