@@ -158,6 +158,24 @@ export default function TimeGrid({
   const period = (hour) => (hour < 12 ? 'A' : 'P');
 
   //DRAG SELECT IMPLEMENTATION
+  useEffect(() => {
+    const handleTouchMove = (e) => {
+      if (isDraggingSlots) {
+        e.preventDefault(); // ✋ block scroll only while dragging
+      }
+    };
+
+    const grid = gridRef.current;
+    if (grid) {
+      grid.addEventListener('touchmove', handleTouchMove, { passive: false });
+    }
+
+    return () => {
+      if (grid) {
+        grid.removeEventListener('touchmove', handleTouchMove);
+      }
+    };
+  }, [isDraggingSlots]);
 
   // Scroll handling
   const handleScroll = () => {
@@ -184,6 +202,14 @@ export default function TimeGrid({
       const key = slotKey(h, m);
       draggedSlots.current.add(key);
       toggleSlotSelection(h, m);
+
+      // Simulate initial drag move after long press triggers drag mode
+      const touch = e.touches?.[0] || e;
+      handlePointerMove({
+        touches: e.touches,
+        clientX: touch?.clientX ?? e.clientX,
+        clientY: touch?.clientY ?? e.clientY,
+      });
     }, 400);
   };
 
@@ -254,7 +280,7 @@ export default function TimeGrid({
   }, [selectedSlots]);
 
   return (
-    <div className="relative flex w-[95%] max-w-md h-96 mt-3 shadow-sm">
+    <div className="relative flex w-[95%] max-w-md h-56 mt-1 shadow-sm">
       <div
         ref={gridRef}
         onScroll={handleScroll}
@@ -271,7 +297,7 @@ export default function TimeGrid({
             className="flex w-full items-center border-b border-black"
           >
             <div
-              className={`w-12 h-32 flex flex-col items-center justify-center border border-gray-200 ${
+              className={`w-12 h-28 flex flex-col items-center justify-center border border-gray-200 ${
                 isHourSelected(hour) ? 'bg-rallyYellow' : ''
               }`}
             >
@@ -287,7 +313,7 @@ export default function TimeGrid({
               {minutes.map((minute) => (
                 <div
                   key={minute}
-                  className={`h-8 flex items-center justify-center text-xs font-semibold cursor-pointer select-none text-black ${
+                  className={`h-7 flex items-center justify-center text-xs font-semibold cursor-pointer select-none text-black ${
                     selectedSlots[slotKey(hour, minute)] ? 'bg-rallyYellow' : ''
                   }`}
                   data-slot={`${hour}-${minute}`}

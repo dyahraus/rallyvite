@@ -19,11 +19,11 @@ export default function MainNavBar({ activeTab, setActiveTab }) {
   };
 
   return (
-    <nav className="w-full bg-blue-300 border-t border-gray-300 flex items-center h-16">
+    <nav className="w-full bg-blue-300 border-t border-gray-300 flex items-center h-10">
       {navItems.map(({ id, label, icon }, index) => (
         <div key={id} className="relative flex flex-1 flex-col items-center">
           {activeTab === id && (
-            <div className="absolute -top-1 w-16 h-14 bg-rallyBlue rounded-full z-0"></div>
+            <div className="absolute -top-0.5 w-12 h-9 bg-rallyBlue rounded-full z-0"></div>
           )}
 
           <button
@@ -32,12 +32,13 @@ export default function MainNavBar({ activeTab, setActiveTab }) {
               activeTab === id ? 'text-rallyYellow' : 'text-white'
             }`}
           >
-            <Image src={icon} alt={label} width={32} height={32} />
-            <span className="text-sm">{label}</span>
+            <Image src={icon} alt={label} width={20} height={20} />
+            <span className="text-xs leading-none">{label}</span>
           </button>
+
           {/* Divider Line (skip last item) */}
           {index < navItems.length - 1 && (
-            <div className="absolute -right-0 top-1/2 transform -translate-y-1/2 h-10 w-0.5 bg-white"></div>
+            <div className="absolute -right-0 top-1/2 transform -translate-y-1/2 h-6 w-0.5 bg-white"></div>
           )}
         </div>
       ))}
