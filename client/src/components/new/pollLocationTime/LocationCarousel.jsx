@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect } from 'react';
 import {
   ChevronLeftIcon,
@@ -17,48 +18,26 @@ export default function LocationCarousel({
 }) {
   const dispatch = useDispatch();
 
-  // Filter out 'No Location Selected' locations and ensure location objects are valid
   const validLocations = locations.filter(
     (location) =>
       location && location.name && location.name !== 'No Location Selected'
   );
 
-  // If no valid locations, return null
   if (validLocations.length === 0) return null;
 
-  const [currentIndex, setCurrentIndex] = useState(1); // Start with the second item as the center one.
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToNext = () => {
-    setCurrentIndex((prevIndex) => {
-      if (prevIndex === validLocations.length - 1) return 0; // Loop back to the start
-      return prevIndex + 1;
-    });
+    setCurrentIndex((prevIndex) =>
+      prevIndex === validLocations.length - 1 ? 0 : prevIndex + 1
+    );
   };
 
   const goToPrevious = () => {
-    setCurrentIndex((prevIndex) => {
-      if (prevIndex === 0) return validLocations.length - 1; // Loop to the end
-      return prevIndex - 1;
-    });
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? validLocations.length - 1 : prevIndex - 1
+    );
   };
-
-  const getVisibleLocations = () => {
-    if (validLocations.length === 1) {
-      return [validLocations[0]];
-    }
-
-    const leftIndex =
-      (currentIndex - 1 + validLocations.length) % validLocations.length;
-    const rightIndex = (currentIndex + 1) % validLocations.length;
-
-    return [
-      validLocations[leftIndex], // Left location
-      validLocations[currentIndex], // Center location
-      validLocations[rightIndex], // Right location
-    ];
-  };
-
-  const visibleLocations = getVisibleLocations();
 
   useEffect(() => {
     const centerLocation = validLocations[currentIndex];
@@ -69,32 +48,22 @@ export default function LocationCarousel({
 
   return (
     <div className="w-full flex flex-col items-center px-4">
-      <div className="flex justify-between items-center">
-        {/* Left Arrow - Only show if more than one location */}
+      <div className="flex justify-between items-center w-full">
+        {/* Left Arrow */}
         {validLocations.length > 1 && (
           <button onClick={goToPrevious} className="p-2">
             <ChevronLeftIcon className="h-6 w-6 text-rallyBlue" />
           </button>
         )}
 
-        {/* Location Information */}
-
-        <div className="flex justify-center items-center space-x-4 flex-1">
-          {visibleLocations.map((location, index) => (
-            <div
-              key={index}
-              className={`text-center transition-all duration-300 ${
-                index === 1 || validLocations.length === 1
-                  ? 'font-bold'
-                  : 'text-gray-400 text-xs opacity-60'
-              }`}
-            >
-              <h3 className="text-md">{location?.name || ''}</h3>
-            </div>
-          ))}
+        {/* Only Center Location */}
+        <div className="flex-1 flex justify-center items-center">
+          <h3 className="text-md font-bold text-center truncate whitespace-nowrap overflow-hidden w-full max-w-[200px]">
+            {validLocations[currentIndex]?.name || ''}
+          </h3>
         </div>
 
-        {/* Right Arrow - Only show if more than one location */}
+        {/* Right Arrow */}
         {validLocations.length > 1 && (
           <button onClick={goToNext} className="p-2">
             <ChevronRightIcon className="h-6 w-6 text-rallyBlue" />

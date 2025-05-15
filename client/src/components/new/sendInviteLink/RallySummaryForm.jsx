@@ -54,13 +54,15 @@ export default function RallySummaryForm({ setCurrContent }) {
 
   return (
     <div>
-      <p className="text-center mb-3 text-base md:text-xl">
+      <p className="text-center mb-2 text-base md:text-xl">
         Your Get-Together Details
       </p>
 
-      <h2 className="text-2xl md:text-4xl text-center mb-2">{name}</h2>
+      <h2 className="text-xl font-semibold md:text-4xl text-center mb-2">
+        {name}
+      </h2>
 
-      <div className="mb-3 relative w-full flex justify-center items-center">
+      <div className="mb-1 relative w-full flex">
         <div className="relative">
           <Image src={TextBubble} width={300} height={200} />
           <h2
@@ -73,19 +75,21 @@ export default function RallySummaryForm({ setCurrContent }) {
       </div>
 
       {duration.trim() ? (
-        <p className="text-lg md:text-2xl mb-5 flex items-center justify-center px-4 py-2">
+        <p className="text-lg md:text-2xl mb-1 flex items-center justify-center px-4 py-2">
           Let's get together for ~{duration} @
         </p>
       ) : null}
 
-      <div className="mt-4">
+      <div className="mt-1">
         <LocationCarousel locations={locations} />
-        {blocks.map(({ location, date, time }, i) => (
-          <div key={i} className="mb-4 mt-4 text-center">
-            <p className="font-bold text-lg md:text-2xl">{date}</p>
-            <p className="text-lg md:text-xl font-medium">{time}</p>
-          </div>
-        ))}
+        <div className="max-h-44 overflow-y-auto mt-0 px-1 scrollbar-none">
+          {blocks.map(({ location, date, time }, i) => (
+            <div key={i} className="mb-4 mt-4 text-center">
+              <p className="font-bold text-lg md:text-2xl">{date}</p>
+              <p className="text-lg md:text-xl font-medium">{time}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

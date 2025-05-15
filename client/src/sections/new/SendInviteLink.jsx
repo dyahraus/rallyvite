@@ -7,23 +7,14 @@ import { useSelector } from 'react-redux';
 export default function SendInviteLink() {
   const [currContent, setCurrContent] = useState('Summary');
   const currentUser = useSelector((state) => state.user.data);
-  // const user = currentUser.currentUser;
+  const user = currentUser?.currentUser;
 
-  //   <div>
-  //   {currContent === 'Summary' ? (
-  //     <RallySummaryForm setCurrContent={setCurrContent} />
-  //   ) : currContent === 'Link' && currentUser ? (
-  //     <GetLinkFormUser user={currentUser} />
-  //   ) : (
-  //     <GetLinkFormGuest />
-  //   )}
-  // </div>
   return (
     <div>
       {currContent === 'Summary' ? (
         <RallySummaryForm setCurrContent={setCurrContent} />
       ) : (
-        <GetLinkFormGuest />
+        <GetLinkFormGuest user={currentUser} />
       )}
     </div>
   );

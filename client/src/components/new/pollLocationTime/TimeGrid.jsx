@@ -10,7 +10,7 @@ export default function TimeGrid({
   times,
   selectedDate,
   setCurrentStep,
-  activeStep,
+  expanded,
 }) {
   console.log(
     '[DATE_DEBUG] TimeGrid render - Current date:',
@@ -99,7 +99,7 @@ export default function TimeGrid({
     // Update refs
     prevDateRef.current = selectedDate;
     prevLocationRef.current = selectedLocation;
-  }, [selectedDate, selectedLocation]);
+  }, [selectedDate, selectedLocation, expanded]);
 
   // Separate effect to handle times updates
   useEffect(() => {
@@ -158,6 +158,28 @@ export default function TimeGrid({
   const period = (hour) => (hour < 12 ? 'A' : 'P');
 
   //DRAG SELECT IMPLEMENTATION
+  const autoScrollRef = useRef(null); // to track the rAF loop
+  const pointerYRef = useRef(null); // latest pointer Y position
+
+  const SCROLL_ZONE_HEIGHT = 40; // px from top or bottom to trigger scroll
+  const SCROLL_SPEED = 3; // px per frame
+
+  const autoScroll = () => {
+    const grid = gridRef.current;
+    const pointerY = pointerYRef.current;
+    if (!grid || pointerY == null) return;
+
+    const { top, bottom } = grid.getBoundingClientRect();
+
+    if (pointerY - top < SCROLL_ZONE_HEIGHT) {
+      grid.scrollTop -= SCROLL_SPEED;
+    } else if (bottom - pointerY < SCROLL_ZONE_HEIGHT) {
+      grid.scrollTop += SCROLL_SPEED;
+    }
+
+    autoScrollRef.current = requestAnimationFrame(autoScroll);
+  };
+
   useEffect(() => {
     const handleTouchMove = (e) => {
       if (isDraggingSlots) {
@@ -217,6 +239,8 @@ export default function TimeGrid({
     if (!isDraggingSlots) return;
 
     const touch = e.touches?.[0] || e;
+    pointerYRef.current = touch.clientY;
+
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
     const dataSlot = target?.getAttribute('data-slot');
     if (dataSlot && !draggedSlots.current.has(dataSlot)) {
@@ -224,11 +248,22 @@ export default function TimeGrid({
       draggedSlots.current.add(dataSlot);
       toggleSlotSelection(h, m);
     }
+
+    if (!autoScrollRef.current) {
+      autoScrollRef.current = requestAnimationFrame(autoScroll);
+    }
   };
 
   const handlePointerUp = () => {
     clearTimeout(dragTimeout.current);
     setIsDraggingSlots(false);
+    draggedSlots.current.clear();
+    pointerYRef.current = null;
+
+    if (autoScrollRef.current) {
+      cancelAnimationFrame(autoScrollRef.current);
+      autoScrollRef.current = null;
+    }
   };
 
   // Scrollbar thumb drag behavior

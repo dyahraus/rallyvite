@@ -48,7 +48,7 @@ export default function DateCarousel({
   };
 
   return (
-    <div className="flex flex-col items-center space-y-2 w-full">
+    <div className="flex flex-col items-center mt-1 space-y-2 w-full">
       {/* Error Message (if any) */}
       {error && <div className="text-red-500 text-xs">{error}</div>}
 

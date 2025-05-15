@@ -9,11 +9,12 @@ import { setUser } from '@/redux/slices/userSlice';
 import { createUser } from '@/api/auth/createUser';
 import { findUserEvents } from '@/api/events/getUserEvents';
 import EventCarousel from '@/components/me/EventCarousel';
+import NotificationSettings from '@/components/me/NotficiationSettings';
 
 export default function Me() {
   const dispatch = useDispatch();
   const currentUser = useSelector((state) => state.user.data);
-  const user = currentUser.currentUser;
+  const user = currentUser?.currentUser;
   console.log(user);
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -107,7 +108,7 @@ export default function Me() {
   return (
     <div className="h-screen flex flex-col items-center px-6 pt-6">
       <h1 className="font-bold text-lg md:text-2xl">Me</h1>
-      <div className="relative mt-6 w-20 h-20 md:w-28 md:h-28">
+      <div className="relative mt-2 w-20 h-20 md:w-28 md:h-28">
         <Image
           src={HolderPFP}
           alt="User"
@@ -116,32 +117,32 @@ export default function Me() {
         />
       </div>
 
-      <form className="mt-8 w-full relative">
+      <form className="mt-4 w-full relative">
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your Name"
-          className="w-full md:text-xl border-2 shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue"
+          className="w-full md:text-xl border-2 text-lg tracking-wider shadow-sm shadow-blue-300 border-rallyBlue rounded-xl py-2 px-6"
         />
       </form>
 
-      <form className="w-full mt-4 relative">
+      <form className="w-full mt-3 relative">
         <input
           type="text"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Your Email*"
-          className="w-full md:text-xl md:mt-2 border-2 shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue"
+          className="w-full md:text-xl md:mt-2 border-2 shadow-sm py-2 px-6 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl focus:outline-none focus:ring-2 focus:ring-rallyBlue"
         />
       </form>
 
-      <div className="mt-4 md:mt-6 flex items-center w-full">
+      <div className="mt-3 md:mt-6 flex items-center w-full">
         {/* Country Code Dropdown */}
         <select
           value={countryCode}
           onChange={(e) => setCountryCode(e.target.value)}
-          className="border-2 md:text-xl shadow-md shadow-blue-300 text-lg tracking-wider border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue text-center h-full"
+          className="border-2 md:text-xl shadow-sm shadow-blue-300 text-lg tracking-wider border-rallyBlue rounded-xl h-10 text-center h-full"
         >
           <option value="+1">+1</option>
           <option value="+44">+44</option>
@@ -158,7 +159,7 @@ export default function Me() {
             value={mobileNumber}
             onChange={(e) => setMobileNumber(e.target.value)}
             placeholder="Mobile Number*"
-            className="w-full border-2 md:text-xl shadow-md px-8 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-rallyBlue h-full"
+            className="w-full border-2 md:text-xl shadow-sm py-2 px-6 text-lg tracking-wider shadow-blue-300 border-rallyBlue rounded-xl focus:outline-none focus:ring-2 focus:ring-rallyBlue h-full"
           />
         </form>
       </div>
@@ -167,7 +168,9 @@ export default function Me() {
         *To recieve responses, updates, and reminders
       </p>
 
-      <p className="mt-12 md:text-2xl">Number of Rallyvite Groups</p>
+      <NotificationSettings />
+
+      {/* <p className="mt-4 md:text-2xl">Number of Rallyvite Groups</p>
       <div className="text-8xl md:text-9xl font-bold text-rallyBlue mt-3">
         {numGroups}
       </div>
@@ -179,7 +182,7 @@ export default function Me() {
           currentIndex={currentEventIndex}
           setCurrentIndex={setCurrentEventIndex}
         />
-      )}
+      )} */}
     </div>
   );
 }

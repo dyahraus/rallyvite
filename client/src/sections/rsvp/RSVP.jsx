@@ -7,9 +7,7 @@ import {
   fetchPendingEvents,
   fetchFullEventDetails,
 } from '@/redux/slices/eventsSlice';
-import RSVPTimeOptions from '@/components/rsvp/RSVPTimeOptions';
-import RSVPTimeGrid from '@/components/rsvp/RSVPTimeGrid';
-import DateCarousel from '@/components/rsvp/RSVPDateCarousel';
+import RSVPTimeOptions from '@/components/rsvp/RSVPTimeOptionsDraft';
 import RSVPLocationCarousel from '@/components/rsvp/RSVPLocationCarousel';
 import UserList from '@/components/new/pollLocationTime/UserList';
 import {
@@ -71,33 +69,6 @@ export default function RSVP() {
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
 
   const [userSelections, setUserSelections] = useState({});
-
-  // Get events state from Redux
-  // const pendingEvents = useSelector((state) => state.events.pendingEvents);
-  // const fullEventDetails = useSelector(
-  //   (state) => state.events.fullEventDetails
-  // );
-  // const loadingEventIds = useSelector((state) => state.events.loadingEventIds);
-
-  // // Fetch pending events on mount
-  // useEffect(() => {
-  //   dispatch(fetchPendingEvents());
-  // }, [dispatch]);
-
-  // useEffect(() => {
-  //   if (pendingEvents.length > 0 && !selectedEventUuid) {
-  //     const firstEvent = pendingEvents[0];
-  //     const uuid = firstEvent.eventUuid;
-
-  //     // Set as selected if not already selected
-  //     setSelectedEventUuid(uuid);
-
-  //     // Only dispatch fetch if full details not already loaded
-  //     if (!fullEventDetails[uuid]) {
-  //       dispatch(fetchFullEventDetails(uuid));
-  //     }
-  //   }
-  // }, [pendingEvents, selectedEventUuid, fullEventDetails, dispatch]);
 
   const handleSelectEvent = (eventUuid) => {
     console.log('[RSVP] handleSelectEvent called', { eventUuid });

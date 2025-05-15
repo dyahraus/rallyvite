@@ -7,11 +7,12 @@ import { useBottomActionBar } from '@/context/BottomActionBarContext';
 import { createAndAppendOrganizer } from '@/api/auth/createAndAppendOrganizer';
 import { useSelector } from 'react-redux';
 import { createInvite } from '@/api/events/createInvite';
+import { setRepeatIntervalCall } from '@/api/events/setRepeatInterval'; // Add at top
 
-export default function GetLinkFormGuest() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [mobileNumber, setMobileNumber] = useState('');
+export default function GetLinkFormGuest({ user }) {
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [mobileNumber, setMobileNumber] = useState(user?.phone || '');
   const [countryCode, setCountryCode] = useState('+1'); // Default to US
   const [repeatInterval, setRepeatInterval] = useState('None');
   const eventUuid = useSelector((state) => state.getTogether.eventUuid);
@@ -50,6 +51,8 @@ export default function GetLinkFormGuest() {
       if (!organizerResult || organizerResult.status !== 'SUCCESS') {
         throw new Error('Failed to create organizer');
       }
+
+      await setRepeatIntervalCall(eventUuid, repeatInterval);
 
       // Then create the invite
       const urlToShare = `event/${eventUuid}`;

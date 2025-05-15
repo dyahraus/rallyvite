@@ -152,6 +152,48 @@ export default function RSVPTimeGrid({
 
   const period = (hour) => (hour < 12 ? 'A' : 'P');
 
+  // DRAG AND DROP FUNCTION
+  const pointerYRef = useRef(null); // latest Y position
+  const autoScrollRef = useRef(null); // requestAnimationFrame ref
+
+  const SCROLL_ZONE_HEIGHT = 40; // px from top or bottom to trigger scroll
+  const SCROLL_SPEED = 3; // px per frame
+
+  const autoScroll = () => {
+    const grid = gridRef.current;
+    const pointerY = pointerYRef.current;
+    if (!grid || pointerY == null) return;
+
+    const { top, bottom } = grid.getBoundingClientRect();
+
+    if (pointerY - top < SCROLL_ZONE_HEIGHT) {
+      grid.scrollTop -= SCROLL_SPEED;
+    } else if (bottom - pointerY < SCROLL_ZONE_HEIGHT) {
+      grid.scrollTop += SCROLL_SPEED;
+    }
+
+    autoScrollRef.current = requestAnimationFrame(autoScroll);
+  };
+
+  useEffect(() => {
+    const handleTouchMove = (e) => {
+      if (isDraggingSlots) {
+        e.preventDefault(); // Prevent scroll while drag-selecting
+      }
+    };
+
+    const grid = gridRef.current;
+    if (grid) {
+      grid.addEventListener('touchmove', handleTouchMove, { passive: false });
+    }
+
+    return () => {
+      if (grid) {
+        grid.removeEventListener('touchmove', handleTouchMove);
+      }
+    };
+  }, [isDraggingSlots]);
+
   // Scroll handling
   const handleScroll = () => {
     const grid = gridRef.current;
@@ -170,11 +212,12 @@ export default function RSVPTimeGrid({
     if (!target) return;
 
     const [h, m] = target.dataset.slot.split('-').map(Number);
+    const key = slotKey(h, m);
+    if (!times[key]) return; // ⛔️ Prevent dragging on unavailable slot
 
     dragTimeout.current = setTimeout(() => {
       setIsDraggingSlots(true);
       draggedSlots.current = new Set();
-      const key = slotKey(h, m);
       draggedSlots.current.add(key);
       toggleUserSlotSelection(h, m);
     }, 400);
@@ -184,18 +227,34 @@ export default function RSVPTimeGrid({
     if (!isDraggingSlots) return;
 
     const touch = e.touches?.[0] || e;
+    pointerYRef.current = touch.clientY;
+
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
     const dataSlot = target?.getAttribute('data-slot');
     if (dataSlot && !draggedSlots.current.has(dataSlot)) {
       const [h, m] = dataSlot.split('-').map(Number);
-      draggedSlots.current.add(dataSlot);
+      const key = slotKey(h, m);
+      if (!times[key]) return; // ⛔️ Skip if not a valid organizer slot
+
+      draggedSlots.current.add(key);
       toggleUserSlotSelection(h, m);
+    }
+
+    if (!autoScrollRef.current) {
+      autoScrollRef.current = requestAnimationFrame(autoScroll);
     }
   };
 
   const handlePointerUp = () => {
     clearTimeout(dragTimeout.current);
     setIsDraggingSlots(false);
+    draggedSlots.current.clear();
+    pointerYRef.current = null;
+
+    if (autoScrollRef.current) {
+      cancelAnimationFrame(autoScrollRef.current);
+      autoScrollRef.current = null;
+    }
   };
 
   // Scrollbar thumb drag behavior
@@ -222,7 +281,7 @@ export default function RSVPTimeGrid({
   }, [selectedDate]);
 
   return (
-    <div className="relative flex w-[60%] max-w-md h-96 mt-4 shadow-sm">
+    <div className="relative flex w-[95%] max-w-md h-72 mt-1 shadow-sm">
       <div
         ref={gridRef}
         onScroll={handleScroll}
@@ -239,55 +298,49 @@ export default function RSVPTimeGrid({
             className="flex w-full items-center border-b border-black"
           >
             <div
-              className={`w-14 h-32 flex items-center justify-center border border-gray-200 font-bold text-5xl ${
+              className={`w-12 h-28 flex flex-col items-center justify-center border border-gray-200 ${
                 isHourUserSelected(hour)
                   ? 'bg-rallyBlue'
                   : isHourSelected(hour)
-                  ? 'bg-rallyYellow'
-                  : 'bg-gray-100 cursor-not-allowed opacity-50'
+                  ? 'bg-rallyYellow text-black'
+                  : 'bg-gray-100 text-black opacity-50'
               }`}
             >
-              {formattedHour(hour)}
+              <div className="text-4xl font-bold leading-none">
+                {formattedHour(hour)}
+              </div>
+              <div className="text-sm font-semibold text-gray-600 mt-1">
+                {period(hour) === 'A' ? 'AM' : 'PM'}
+              </div>
             </div>
 
-            <div className="flex-1 grid grid-rows-4 divide-y divide-gray-300">
+            <div className="flex-1 min-w-0 grid grid-rows-4 divide-y divide-gray-300">
               {minutes.map((minute) => {
                 const timeKey = slotKey(hour, minute);
                 const timeSlot = times[timeKey];
+                const isSelected = userSelectedSlots[timeKey];
+                const isAvailable = selectedSlots[timeKey];
+
                 return (
                   <div
                     key={timeKey}
                     data-slot={timeKey}
                     data-time-id={timeSlot?.id}
-                    className={`h-8 flex items-center justify-center text-xs cursor-pointer select-none text-black ${
-                      userSelectedSlots[timeKey]
+                    className={`h-7 flex items-center justify-center text-xs font-semibold cursor-pointer select-none text-black ${
+                      isSelected
                         ? 'bg-rallyBlue'
-                        : selectedSlots[timeKey]
+                        : isAvailable
                         ? 'bg-rallyYellow'
                         : 'bg-gray-100 cursor-not-allowed opacity-50'
                     }`}
                     onClick={() => {
-                      if (selectedSlots[timeKey]) {
-                        toggleUserSlotSelection(hour, minute);
-                      }
+                      if (isAvailable) toggleUserSlotSelection(hour, minute);
                     }}
                   >
                     {minute === 0 ? ':00' : `:${minute}`}
                   </div>
                 );
               })}
-            </div>
-
-            <div
-              className={`w-14 h-32 flex items-center justify-center border border-gray-200 font-bold text-5xl ${
-                isHourUserSelected(hour)
-                  ? 'bg-rallyBlue'
-                  : isHourSelected(hour)
-                  ? 'bg-rallyYellow'
-                  : 'bg-gray-100 cursor-not-allowed opacity-50'
-              }`}
-            >
-              {period(hour)}
             </div>
           </div>
         ))}

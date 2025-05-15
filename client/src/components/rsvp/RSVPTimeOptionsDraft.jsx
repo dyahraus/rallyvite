@@ -122,25 +122,29 @@ export default function RSVPTimeOptions({
   const userTimes = getUserTimes(location);
 
   return (
-    <div className="flex w-[90%] flex-col items-center mt-5">
-      <h2 className="mb-2">Get-Together Time Option(s)</h2>
+    <div className="flex w-[95%] flex-col items-center mt-2">
+      <h2 className="mb-1">Get-Together Time Option(s)</h2>
       <RSVPDateCarousel
         selectedDate={localSelectedDate}
         handleDateChange={handleDateChange}
         locationDates={locationDates}
       />
-      <div className="flex flex-row">
-        <RSVPTimeGrid
-          location={location}
-          setEvent={setEvent}
-          times={organizerTimes}
-          userTimes={userTimes}
-          selectedDate={localSelectedDate}
-          onTimeSelection={handleTimeSelection}
-          setCurrentStep={setCurrentStep}
-          setResponse={setResponse}
-        />
-        <RSVPUserList event={event} />
+      <div className="flex flex-row w-full items-start mt-1">
+        <div className="flex-grow min-w-0">
+          <RSVPTimeGrid
+            location={location}
+            setEvent={setEvent}
+            times={organizerTimes}
+            userTimes={userTimes}
+            selectedDate={localSelectedDate}
+            onTimeSelection={handleTimeSelection}
+            setCurrentStep={setCurrentStep}
+            setResponse={setResponse}
+          />
+        </div>
+        <div className="w-[150px] shrink-0">
+          <RSVPUserList event={event} />
+        </div>
       </div>
     </div>
   );

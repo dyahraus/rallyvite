@@ -6,7 +6,11 @@ import UserList from './UserList';
 import { useSelector, useDispatch } from 'react-redux';
 import { setSelectedDate } from '../../../redux/slices/getTogetherSlice';
 
-export default function GetTogetherTimeOptions({ setCurrentStep, activeStep }) {
+export default function GetTogetherTimeOptions({
+  setCurrentStep,
+  activeStep,
+  expanded,
+}) {
   const dispatch = useDispatch();
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
 
@@ -56,6 +60,7 @@ export default function GetTogetherTimeOptions({ setCurrentStep, activeStep }) {
             selectedDate={localSelectedDate}
             setCurrentStep={setCurrentStep}
             activeStep={activeStep}
+            expanded={expanded}
           />
         </div>
         <div className="w-[150px] shrink-0  ">

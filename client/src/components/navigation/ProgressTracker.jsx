@@ -55,7 +55,7 @@ export default function ProgressTracker({ currentStep, setCurrentStep }) {
       {/* Step 3 */}
       <div className="flex-1 flex justify-center items-center py-1">
         <div
-          className={`px-1 py-2 text-xs whitespace-nowrap leading-tight text-center rounded-full ${
+          className={`px-7 py-2 text-xs whitespace-nowrap leading-tight text-center rounded-full ${
             currentStep === 3
               ? 'bg-rallyBlue text-white'
               : linkSectionCompleted

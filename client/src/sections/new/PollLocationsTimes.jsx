@@ -9,6 +9,7 @@ import { useJsApiLoader } from '@react-google-maps/api';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setLocation,
+  setLocationSectionCompleted,
   setSelectedLocation,
 } from '../../redux/slices/getTogetherSlice';
 import LocationCarousel from '@/components/new/pollLocationTime/LocationCarousel';
@@ -23,7 +24,9 @@ export default function PollLocationsTimes({ setCurrentStep }) {
   const { setBottomAction } = useBottomActionBar();
   const [locationCompleted, setLocationCompleted] = useState(false);
   const [timesCompleted, setTimesCompleted] = useState(true);
-  const { locations } = useSelector((state) => state.getTogether);
+  const { locations, locationSectionCompleted } = useSelector(
+    (state) => state.getTogether
+  );
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: apiKey,
@@ -35,7 +38,10 @@ export default function PollLocationsTimes({ setCurrentStep }) {
       setBottomAction({
         label: 'Continue',
         disabled: false,
-        onClick: () => setCurrentStep(3),
+        onClick: () => {
+          setCurrentStep(3);
+          dispatch(setLocationSectionCompleted(true));
+        },
       });
     } else {
       setBottomAction({
@@ -95,6 +101,7 @@ export default function PollLocationsTimes({ setCurrentStep }) {
       {activeStep === 'times' ? (
         <GetTogetherTimeOptions
           setCurrentStep={setCurrentStep}
+          expanded={expanded}
           activeStep={activeStep}
         />
       ) : (
