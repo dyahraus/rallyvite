@@ -1,23 +1,25 @@
 'use client';
 import { useState, useEffect } from 'react';
-import ShareInviteButton from './ShareInviteButton';
 import Image from 'next/image';
 import ThumbsUp from '@/assets/15.png';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
 import { createAndAppendOrganizer } from '@/api/auth/createAndAppendOrganizer';
 import { useSelector } from 'react-redux';
-import { createInvite } from '@/api/events/createInvite';
-import { setRepeatIntervalCall } from '@/api/events/setRepeatInterval'; // Add at top
+import { getCurrentUser } from '@/api/auth/getCurrentUser';
+import { useDispatch } from 'react-redux';
+import { setUser } from '@/redux/slices/userSlice';
+import { setRepeatIntervalCall } from '@/api/events/setRepeatIntervalCall'; // Add at top
 
-export default function GetLinkFormGuest({ user }) {
-  const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [mobileNumber, setMobileNumber] = useState(user?.phone || '');
+export default function GetLinkFormGuest() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+1'); // Default to US
   const [repeatInterval, setRepeatInterval] = useState('None');
   const eventUuid = useSelector((state) => state.getTogether.eventUuid);
   const getTogetherName = useSelector((state) => state.getTogether.name);
   const { setBottomAction } = useBottomActionBar();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     setBottomAction({
@@ -34,7 +36,7 @@ export default function GetLinkFormGuest({ user }) {
       onClick: handleShare,
       textColor: name ? 'text-rallyYellow' : undefined,
     });
-  }, [name, email, mobileNumber, countryCode]);
+  }, [name, email, mobileNumber, countryCode, repeatInterval]);
 
   const handleShare = async () => {
     try {
@@ -52,7 +54,18 @@ export default function GetLinkFormGuest({ user }) {
         throw new Error('Failed to create organizer');
       }
 
-      await setRepeatIntervalCall(eventUuid, repeatInterval);
+      console.log(organizerResult);
+
+      try {
+        const user = await getCurrentUser();
+        console.log(user);
+        dispatch(setUser(user));
+      } catch (err) {
+        console.error('Failed to load user:', err);
+      }
+
+      const testingRes = await setRepeatIntervalCall(eventUuid, repeatInterval);
+      console.log('HERE IT IS: ', testingRes);
 
       // Then create the invite
       const urlToShare = `event/${eventUuid}`;

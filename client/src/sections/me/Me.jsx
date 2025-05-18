@@ -9,7 +9,7 @@ import { setUser } from '@/redux/slices/userSlice';
 import { createUser } from '@/api/auth/createUser';
 import { findUserEvents } from '@/api/events/getUserEvents';
 import EventCarousel from '@/components/me/EventCarousel';
-import NotificationSettings from '@/components/me/NotficiationSettings';
+// import NotificationSettings from '@/components/me/NotficiationSettings';
 
 export default function Me() {
   const dispatch = useDispatch();
@@ -168,7 +168,7 @@ export default function Me() {
         *To recieve responses, updates, and reminders
       </p>
 
-      <NotificationSettings />
+      {/* <NotificationSettings /> */}
 
       {/* <p className="mt-4 md:text-2xl">Number of Rallyvite Groups</p>
       <div className="text-8xl md:text-9xl font-bold text-rallyBlue mt-3">

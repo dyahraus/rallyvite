@@ -99,7 +99,43 @@ export default function TimeGrid({
     // Update refs
     prevDateRef.current = selectedDate;
     prevLocationRef.current = selectedLocation;
-  }, [selectedDate, selectedLocation, expanded]);
+  }, [selectedDate, selectedLocation]);
+
+  // Save previous date's slots when date or location changes
+  useEffect(() => {
+    console.log('SUBMISSION FOR EXPANDED CHANGE', {
+      prevDate: prevDateRef.current?.toISOString(),
+      newDate: selectedDate?.toISOString(),
+      hasDateChanged: prevDateRef.current !== selectedDate,
+      hasLocationChanged:
+        prevLocationRef.current?.name !== selectedLocation?.name,
+      currentSlots: selectedSlots,
+      prevLocation: prevLocationRef.current?.name,
+      newLocation: selectedLocation?.name,
+    });
+
+    // Save slots for previous date/location combination
+    if (prevDateRef.current && prevLocationRef.current) {
+      console.log('SUBMISSION FOR EXPANDED CHANGE', {
+        prevDate: prevDateRef.current.toISOString(),
+        prevLocation: prevLocationRef.current.name,
+        slotsBeingSaved: selectedSlotsRef.current,
+      });
+      handleTimeSubmission(
+        prevDateRef.current,
+        selectedSlotsRef.current,
+        prevLocationRef.current.name
+      );
+    }
+
+    // Load slots for new date/location combination
+    setSelectedSlots(times);
+    selectedSlotsRef.current = times;
+
+    // Update refs
+    prevDateRef.current = selectedDate;
+    prevLocationRef.current = selectedLocation;
+  }, [expanded]);
 
   // Separate effect to handle times updates
   useEffect(() => {

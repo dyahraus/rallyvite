@@ -14,7 +14,7 @@ export default function SendInviteLink() {
       {currContent === 'Summary' ? (
         <RallySummaryForm setCurrContent={setCurrContent} />
       ) : (
-        <GetLinkFormGuest user={currentUser} />
+        <GetLinkFormGuest />
       )}
     </div>
   );

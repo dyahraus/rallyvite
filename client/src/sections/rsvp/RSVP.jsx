@@ -1,196 +1,140 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  fetchPendingEvents,
-  fetchFullEventDetails,
-} from '@/redux/slices/eventsSlice';
-import RSVPTimeOptions from '@/components/rsvp/RSVPTimeOptionsDraft';
 import RSVPLocationCarousel from '@/components/rsvp/RSVPLocationCarousel';
-import UserList from '@/components/new/pollLocationTime/UserList';
-import {
-  mockPendingEvents,
-  mockFullEventDetails,
-} from '@/api/events/mockEvents';
+import RSVPTimeOptions from '@/components/rsvp/RSVPTimeOptionsDraft';
+import RSVPSummary from '@/components/rsvp/RSVPSummary';
+import RSVPBar from '@/components/navigation/RSVPBar';
+import BottomActionBar from '@/components/navigation/BottomActionBar';
+import RSVPEventCarousel from '@/components/rsvp/RSVPEventCarousel';
 
-export default function RSVP() {
-  console.log('[RSVP] Component mounted');
-  const dispatch = useDispatch();
-  const [selectedEventUuid, setSelectedEventUuid] = useState('');
-  const [selectedEvent, setSelectedEvent] = useState({});
-  const [currentIndex, setCurrentIndex] = useState(1); // Start with the second item as the center one.
+const RSVPSection = ({
+  event,
+  setEvent,
+  currentIndex,
+  setCurrentIndex,
+  setCurrentStep,
+  setResponse,
+}) => {
+  const validLocations =
+    event?.locations?.filter(
+      (location) =>
+        location && location.name && location.name !== 'No Location Selected'
+    ) || [];
 
-  const [location, setLocation] = useState({});
+  if (!validLocations.length) return null;
 
-  const pendingEvents = mockPendingEvents;
-  const fullEventDetails = mockFullEventDetails;
-  const loadingEventIds = [];
+  return (
+    <>
+      <RSVPLocationCarousel
+        currentIndex={currentIndex}
+        setCurrentIndex={setCurrentIndex}
+        locations={validLocations}
+      />
+      <div className="flex w-[90%] flex-col items-center mt-5">
+        <RSVPTimeOptions
+          setEvent={setEvent}
+          location={validLocations[currentIndex]}
+          event={event}
+          setCurrentStep={setCurrentStep}
+          setResponse={setResponse}
+        />
+      </div>
+    </>
+  );
+};
+
+export default function RSVPInboxPage() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [events, setEvents] = useState([]); // Multiple events from backend
+  const [activeEventIndex, setActiveEventIndex] = useState(0);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [currentLocationIndex, setCurrentLocationIndex] = useState(0);
+  const [response, setResponse] = useState('');
 
   useEffect(() => {
-    console.log('[RSVP] Initial pendingEvents effect triggered', {
-      pendingEvents,
-    });
-    if (pendingEvents.length > 0) {
-      console.log('[RSVP] Setting initial selectedEventUuid', {
-        eventUuid: pendingEvents[0].eventUuid,
-      });
-      setSelectedEventUuid(pendingEvents[0].eventUuid);
-    }
+    let isMounted = true;
+
+    const fetchUnrespondedEvents = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/events/user/unresponded');
+        const data = await res.json();
+
+        if (!isMounted) return;
+
+        if (Array.isArray(data)) {
+          setEvents(data);
+        } else {
+          setError('Failed to load RSVP events.');
+        }
+      } catch (err) {
+        if (isMounted) setError('Failed to load RSVP events.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchUnrespondedEvents();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  useEffect(() => {
-    console.log('[RSVP] Location effect triggered', {
-      selectedEvent,
-      currentIndex,
-      hasLocations: Array.isArray(selectedEvent.locations),
-      locationsLength: selectedEvent.locations?.length,
-    });
+  const activeEvent = events[activeEventIndex];
 
-    if (
-      selectedEvent &&
-      Array.isArray(selectedEvent.locations) &&
-      selectedEvent.locations.length > 0
-    ) {
-      const safeIndex =
-        currentIndex < selectedEvent.locations.length ? currentIndex : 0;
-      console.log('[RSVP] Setting new location', {
-        safeIndex,
-        location: selectedEvent.locations[safeIndex],
-      });
-      setLocation(selectedEvent.locations[safeIndex]);
-    } else {
-      console.log('[RSVP] No valid location found, resetting location state');
-      setLocation({});
-    }
-  }, [selectedEvent, currentIndex]);
-  // const [selectedLocation, setSelectedLocations] = useState({});
-  const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
-
-  const [userSelections, setUserSelections] = useState({});
-
-  const handleSelectEvent = (eventUuid) => {
-    console.log('[RSVP] handleSelectEvent called', { eventUuid });
-    if (!fullEventDetails[eventUuid]) {
-      console.log('[RSVP] Fetching full event details', { eventUuid });
-      dispatch(fetchFullEventDetails(eventUuid));
-    }
-    setSelectedEventUuid(eventUuid);
-  };
-
-  const handleSubmit = (selections) => {
-    console.log('[RSVP] handleSubmit called', { selections });
-    setUserSelections(selections);
-  };
-
-  useEffect(() => {
-    console.log('[RSVP] selectedEventUuid or fullEventDetails changed', {
-      selectedEventUuid,
-      hasFullDetails: !!fullEventDetails[selectedEventUuid],
-    });
-
-    if (selectedEventUuid && fullEventDetails[selectedEventUuid]) {
-      console.log('[RSVP] Setting selected event', {
-        event: fullEventDetails[selectedEventUuid],
-      });
-      setSelectedEvent(fullEventDetails[selectedEventUuid]);
-    }
-  }, [selectedEventUuid, fullEventDetails]);
-
-  const isLoading = loadingEventIds.includes(selectedEventUuid);
-  console.log('[RSVP] Render state', {
-    isLoading,
-    selectedEventUuid,
-    hasSelectedEvent: !!selectedEvent,
-    pendingEventsCount: pendingEvents.length,
-  });
-
-  if (isLoading) {
-    console.log('[RSVP] Rendering loading state');
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading event details...</div>
+        <div className="text-xl">Loading RSVP events...</div>
       </div>
     );
   }
 
-  if (!selectedEvent && pendingEvents.length === 0) {
-    console.log('[RSVP] Rendering no events state');
+  if (error || !events.length) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl text-red-500">
-          You're all caught up! Go to Upcoming to see upcoming events or
-          Highlights to view past events.
+          {error || 'No events to RSVP to.'}
         </div>
       </div>
     );
   }
 
-  // Get available times for the selected date and location
-  const getAvailableTimesForDate = (date, location) => {
-    console.log('[RSVP] getAvailableTimesForDate called', { date, location });
-    const dateObj = location?.dates?.find(
-      (d) => new Date(d.date).toDateString() === date.toDateString()
-    );
-    const times = dateObj?.times || {};
-    console.log('[RSVP] Found available times', { times });
-    return times;
-  };
-
-  console.log('[RSVP] Rendering main component', {
-    selectedEvent,
-    location,
-    currentIndex,
-  });
-
   return (
-    <div className="h-screen flex flex-col items-center pt-6">
-      {/* Event Selection Carousel */}
-      <div className="w-full max-w-4xl mb-6 px-4">
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {pendingEvents.map((event) => (
-            <button
-              key={event.eventUuid}
-              onClick={() => handleSelectEvent(event.eventUuid)}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap ${
-                selectedEventUuid === event.eventUuid
-                  ? 'bg-rallyYellow text-black'
-                  : 'bg-rallyBlue text-white hover:bg-rallyBlue/80'
-              }`}
-            >
-              {event.name}
-              {event.isAwaitingResponse && (
-                <span className="ml-2 text-xs bg-red-500 text-white px-2 py-1 rounded-full">
-                  Response Needed
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+    <>
+      <div className="min-h-screen flex flex-col items-center pt-6 pb-[64px]">
+        <RSVPEventCarousel
+          currentIndex={activeEventIndex}
+          setCurrentIndex={setActiveEventIndex}
+          events={events}
+        />
+        {currentStep === 1 ? (
+          <RSVPSection
+            event={activeEvent}
+            setEvent={(updated) => {
+              const newEvents = [...events];
+              newEvents[activeEventIndex] = updated;
+              setEvents(newEvents);
+            }}
+            currentIndex={currentLocationIndex}
+            setCurrentIndex={setCurrentLocationIndex}
+            setCurrentStep={setCurrentStep}
+            setResponse={setResponse}
+          />
+        ) : (
+          <RSVPSummary response={response} event={activeEvent} />
+        )}
       </div>
 
-      {selectedEvent && (
-        <>
-          <h1 className="font-bold text-xl">{selectedEvent.name}</h1>
-          {selectedEvent.description && (
-            <p className="text-gray-600 mt-2">{selectedEvent.description}</p>
-          )}
-          <RSVPLocationCarousel
-            currentIndex={currentIndex}
-            setCurrentIndex={setCurrentIndex}
-            locations={selectedEvent.locations}
-          />
-          <div className="flex w-[90%] flex-col items-center mt-5">
-            <h2 className="mb-2">Get-Together Time Option(s)</h2>
-            <RSVPTimeOptions
-              eventUuid={selectedEventUuid}
-              location={location}
-            />
-            <UserList users={selectedEvent.users} />
-          </div>
-        </>
-      )}
-    </div>
+      <div className="fixed bottom-0 w-full flex flex-col items-center">
+        {currentStep === 1 && (
+          <RSVPBar setCurrentStep={setCurrentStep} setResponse={setResponse} />
+        )}
+        <BottomActionBar />
+      </div>
+    </>
   );
 }

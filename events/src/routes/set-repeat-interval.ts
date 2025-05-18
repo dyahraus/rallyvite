@@ -10,8 +10,11 @@ const router = express.Router();
 router.post(
   '/api/events/setrepeat/:uuid',
   async (req: Request, res: Response) => {
+    console.log('route entered');
     const { uuid } = req.params;
+    console.log('UUID: ', uuid);
     const { repeatInterval } = req.body;
+    console.log('Repeat interval: ', repeatInterval);
 
     if (!repeatInterval || typeof repeatInterval !== 'string') {
       throw new BadRequestError('Missing or invalid repeatInterval in body');
@@ -28,6 +31,8 @@ router.post(
       );
     }
 
+    console.log('Match: ', match);
+
     const value = parseInt(match[1]);
     const unit = match[2];
 
@@ -41,6 +46,8 @@ router.post(
     } else {
       throw new BadRequestError('Unsupported interval unit');
     }
+
+    console.log('interval: ', intervalInWeeks);
 
     try {
       const event = await findEventByUuid(uuid);

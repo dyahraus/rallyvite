@@ -14,6 +14,7 @@ import { findUserEventsRouter } from './routes/find-user-events';
 import { setRepeatIntervalRouter } from './routes/set-repeat-interval';
 import { finalizeOptionsRouter } from './routes/get-event-options';
 import { finalizeEventDetailsRouter } from './routes/finalize-event-details';
+import { findRSVPUserEventsRouter } from './routes/find-user-rsvps';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use(appendParticipantRouter);
 app.use(setRepeatIntervalRouter);
 app.use(finalizeOptionsRouter);
 app.use(findEventRouter);
+app.use(findRSVPUserEventsRouter);
 app.use(findUserEventsRouter);
 app.use(finalizeEventDetailsRouter);
 
