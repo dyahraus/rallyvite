@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import GetTogetherLocationOptions from '../../components/new/pollLocationTime/GetTogetherLocationOptions';
 import GetTogetherTimeOptions from '../../components/new/pollLocationTime/GetTogetherTimeOptions';
 import LocationCollapsedSummary from '@/components/new/pollLocationTime/LocationCollapsedSummary';
@@ -27,6 +27,7 @@ export default function PollLocationsTimes({ setCurrentStep }) {
   const { locations, locationSectionCompleted } = useSelector(
     (state) => state.getTogether
   );
+  const timeGridRef = useRef(); // ⬅️ create ref to TimeGrid
 
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: apiKey,
@@ -52,6 +53,15 @@ export default function PollLocationsTimes({ setCurrentStep }) {
     }
   }, [locationCompleted, timesCompleted]);
 
+  // ⬅️ this will manually call TimeGrid's submit before switching to addLoc step
+  const handleAddLocation = () => {
+    if (timeGridRef.current) {
+      timeGridRef.current.submit();
+    }
+    setExpanded(true);
+    setActiveStep('addLoc');
+  };
+
   const renderLocationSection = () => {
     if (activeStep === 'location') {
       return (
@@ -73,6 +83,7 @@ export default function PollLocationsTimes({ setCurrentStep }) {
           setExpanded={setExpanded}
           setActiveStep={setActiveStep}
           locations={locations}
+          onAddLocation={handleAddLocation} // ⬅️ pass it down here
           onLocationSubmit={(locationData) => {
             dispatch(setLocation(locationData));
             dispatch(setSelectedLocation(locationData));
@@ -93,7 +104,7 @@ export default function PollLocationsTimes({ setCurrentStep }) {
   };
 
   if (loadError) return <div>Error loading Google Maps API.</div>;
-  if (!isLoaded) return <div>Loading map resources...</div>; // optional spinner
+  if (!isLoaded) return <div>Loading map resources...</div>;
 
   return (
     <>
@@ -103,6 +114,7 @@ export default function PollLocationsTimes({ setCurrentStep }) {
           setCurrentStep={setCurrentStep}
           expanded={expanded}
           activeStep={activeStep}
+          timeGridRef={timeGridRef} // ⬅️ pass ref into GetTogetherTimeOptions
         />
       ) : (
         <LocationCollapsedSummary

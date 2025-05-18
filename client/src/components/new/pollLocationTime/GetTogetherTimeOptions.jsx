@@ -10,6 +10,7 @@ export default function GetTogetherTimeOptions({
   setCurrentStep,
   activeStep,
   expanded,
+  timeGridRef,
 }) {
   const dispatch = useDispatch();
   const [localSelectedDate, setLocalSelectedDate] = useState(new Date());
@@ -56,6 +57,7 @@ export default function GetTogetherTimeOptions({
       <div className="flex flex-row w-full items-start mt-1">
         <div className=" flex-grow min-w-0">
           <TimeGrid
+            ref={timeGridRef}
             times={times}
             selectedDate={localSelectedDate}
             setCurrentStep={setCurrentStep}

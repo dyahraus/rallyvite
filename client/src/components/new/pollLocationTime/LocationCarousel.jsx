@@ -15,6 +15,7 @@ export default function LocationCarousel({
   onLocationSubmit,
   expanded,
   setExpanded,
+  onAddLocation,
 }) {
   const dispatch = useDispatch();
 
@@ -74,10 +75,7 @@ export default function LocationCarousel({
       {!expanded ? (
         <div
           className="flex flex-col items-center justify-center mt-2 text-rallyBlue cursor-pointer"
-          onClick={() => {
-            setExpanded(true);
-            setActiveStep('addLoc');
-          }}
+          onClick={onAddLocation}
         >
           <PlusCircleIcon className="w-7 h-7 mb-1 stroke-1" />
           <span className="ml-2 text-xs">Add Another Location Option</span>

@@ -1,17 +1,21 @@
 'use client';
-import React, { useRef, useState, useEffect } from 'react';
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setTimes } from '../../../redux/slices/getTogetherSlice';
 import { useGesture } from '@use-gesture/react';
 import { animated, useSpring } from '@react-spring/web';
 import { useBottomActionBar } from '@/context/BottomActionBarContext';
 
-export default function TimeGrid({
-  times,
-  selectedDate,
-  setCurrentStep,
-  expanded,
-}) {
+const TimeGrid = forwardRef(function TimeGrid(
+  { times, selectedDate, setCurrentStep, expanded },
+  ref
+) {
   console.log(
     '[DATE_DEBUG] TimeGrid render - Current date:',
     selectedDate?.toISOString()
@@ -64,6 +68,29 @@ export default function TimeGrid({
       })
     );
   };
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      submit: () => {
+        console.log('[IMPERATIVE_HANDLE] Triggered manual submission');
+
+        if (prevDateRef.current && prevLocationRef.current) {
+          handleTimeSubmission(
+            prevDateRef.current,
+            selectedSlotsRef.current,
+            prevLocationRef.current.name
+          );
+        } else {
+          console.warn('[IMPERATIVE_HANDLE] Missing prevDate or prevLocation', {
+            prevDate: prevDateRef.current,
+            prevLocation: prevLocationRef.current,
+          });
+        }
+      },
+    }),
+    []
+  );
 
   // Save previous date's slots when date or location changes
   useEffect(() => {
@@ -410,4 +437,6 @@ export default function TimeGrid({
       </div>
     </div>
   );
-}
+});
+
+export default TimeGrid;
