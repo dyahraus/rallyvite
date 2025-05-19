@@ -13,8 +13,13 @@ const router = express.Router();
 
 router.post('/api/events/rsvp', async (req: Request, res: Response) => {
   console.log('Received RSVP submission request');
-  const { event_uuid, selected_date, selected_times } = req.body;
-  console.log('Request body:', { event_uuid, selected_date, selected_times });
+  const { event_uuid, selected_date, selected_times, response } = req.body;
+  console.log('Request body:', {
+    event_uuid,
+    selected_date,
+    selected_times,
+    response,
+  });
 
   if (!req.currentUser) {
     console.log('No authenticated user found');
@@ -30,6 +35,11 @@ router.post('/api/events/rsvp', async (req: Request, res: Response) => {
   if (!selected_date) {
     console.log('Invalid selected_date provided');
     res.status(400).send({ error: 'Selected date is required.' });
+    return;
+  }
+
+  if (!event_uuid || !selected_date || !response) {
+    res.status(400).send({ error: 'Missing required fields.' });
     return;
   }
 
@@ -53,7 +63,18 @@ router.post('/api/events/rsvp', async (req: Request, res: Response) => {
     try {
       await client.query('BEGIN');
 
-      // Delete any existing time selections for this user and event
+      // Upsert user response into events_users
+      await client.query(
+        `
+        INSERT INTO events_users (event_id, user_id, response, rsvp_status, role, last_modified)
+        VALUES ($1, $2, $3, TRUE, 'participant', NOW())
+        ON CONFLICT (event_id, user_id)
+        DO UPDATE SET response = $3, rsvp_status = TRUE, last_modified = NOW()
+        `,
+        [event.id, req.currentUser.id, response]
+      );
+
+      // Always delete previous time selections
       await client.query(
         `DELETE FROM user_event_times 
          WHERE user_id = $1 
@@ -67,15 +88,19 @@ router.post('/api/events/rsvp', async (req: Request, res: Response) => {
         [req.currentUser.id, event.id]
       );
 
-      // Insert new time selections
-      const values = selected_times
-        .map(
-          (eventTimeId) =>
-            `(${req.currentUser.id}, ${eventTimeId}, 'available', NOW())`
-        )
-        .join(',');
+      // Only re-insert if response is yes or maybe
+      if (
+        response !== 'no' &&
+        Array.isArray(selected_times) &&
+        selected_times.length > 0
+      ) {
+        const values = selected_times
+          .map(
+            (eventTimeId) =>
+              `(${req?.currentUser?.id}, ${eventTimeId}, 'available', NOW())`
+          )
+          .join(',');
 
-      if (values.length > 0) {
         await client.query(
           `INSERT INTO user_event_times (user_id, event_time_id, status, created_at)
            VALUES ${values}`
@@ -83,7 +108,6 @@ router.post('/api/events/rsvp', async (req: Request, res: Response) => {
       }
 
       await client.query('COMMIT');
-      console.log('RSVP submission successful');
       res.status(201).send({ message: 'RSVP submitted successfully' });
     } catch (err) {
       await client.query('ROLLBACK');

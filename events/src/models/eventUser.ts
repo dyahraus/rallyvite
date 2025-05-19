@@ -4,6 +4,7 @@ export interface EventUser {
   user_id: number;
   role: string;
   rsvpStatus: boolean;
+  response: string;
   date_created: Date;
   last_modified: Date;
 }

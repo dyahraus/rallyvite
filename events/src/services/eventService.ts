@@ -57,34 +57,31 @@ export const findEventByUuid = async (uuid: string): Promise<Event> => {
 export const addUserToEvent = async (
   eventId: number,
   userId: number,
-  role: string = 'participant'
+  role: string = 'participant',
+  response: string = 'yes'
 ): Promise<EventUser> => {
-  // First check if the event exists
   const event = await findEventById(eventId);
 
-  // Check if user is already associated with the event
   const existingResult = await pool.query<EventUser>(
     'SELECT * FROM events_users WHERE event_id = $1 AND user_id = $2',
     [eventId, userId]
   );
 
   if (existingResult.rows[0]) {
-    // Update the role if it's different
-    if (existingResult.rows[0].role !== role) {
-      await pool.query('UPDATE events_users SET role = $1 WHERE id = $2', [
-        role,
-        existingResult.rows[0].id,
-      ]);
-    }
-    return existingResult.rows[0];
+    await pool.query(
+      `UPDATE events_users 
+       SET role = $1, response = $2, rsvp_status = TRUE, last_modified = NOW()
+       WHERE event_id = $3 AND user_id = $4`,
+      [role, response, eventId, userId]
+    );
+    return { ...existingResult.rows[0], response };
   }
 
-  // Create new association
   const result = await pool.query<EventUser>(
-    `INSERT INTO events_users (event_id, user_id, role)
-     VALUES ($1, $2, $3)
+    `INSERT INTO events_users (event_id, user_id, role, response, rsvp_status)
+     VALUES ($1, $2, $3, $4, TRUE)
      RETURNING *`,
-    [eventId, userId, role]
+    [eventId, userId, role, response]
   );
 
   return result.rows[0];
@@ -224,19 +221,62 @@ export const getEventOptions = async (
 
   const ranked = await Promise.all(
     blocks.map(async (block) => {
-      const { rows: users }: QueryResult<{ user_id: number }> =
+      const { timeIds } = block;
+
+      // Step 1: Get RSVP responses for the event
+      const {
+        rows: rsvpRows,
+      }: QueryResult<{ user_id: number; response: string }> = await pool.query(
+        `SELECT user_id, response
+         FROM events_users
+         WHERE event_id = $1`,
+        [eventId]
+      );
+
+      // Step 2: Get user selections for this block
+      const {
+        rows: selectionRows,
+      }: QueryResult<{ user_id: number; event_time_id: number }> =
         await pool.query(
-          `
-        SELECT user_id
-        FROM user_event_times
-        WHERE event_time_id = ANY($1::int[])
-        GROUP BY user_id
-        HAVING COUNT(*) = $2
-      `,
-          [block.timeIds, block.timeIds.length]
+          `SELECT user_id, event_time_id
+         FROM user_event_times
+         WHERE event_time_id = ANY($1::int[])`,
+          [timeIds]
         );
 
-      return { ...block, yesCount: users.length };
+      // Step 3: Build a map of user_id -> selected time_ids
+      const selectionMap = new Map<number, Set<number>>();
+      for (const row of selectionRows) {
+        if (!selectionMap.has(row.user_id)) {
+          selectionMap.set(row.user_id, new Set());
+        }
+        selectionMap.get(row.user_id)!.add(row.event_time_id);
+      }
+
+      // Step 4: Build participant list
+      const participants = rsvpRows
+        .filter(({ response }) => response === 'yes' || response === 'maybe')
+        .map(({ user_id, response }) => {
+          const selected = selectionMap.get(user_id);
+
+          const hasAllTimeIds =
+            selected && timeIds.every((id) => selected.has(id));
+
+          if (hasAllTimeIds) {
+            return { userId: user_id, response };
+          }
+
+          return null; // exclude if missing any slot
+        })
+        .filter(Boolean); // remove nulls
+
+      const yesCount = participants.filter((p) => p?.response === 'yes').length;
+
+      return {
+        ...block,
+        yesCount,
+        participants,
+      };
     })
   );
 

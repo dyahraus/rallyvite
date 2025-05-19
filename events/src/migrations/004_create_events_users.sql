@@ -7,6 +7,8 @@ CREATE TABLE events_users (
   user_id INTEGER NOT NULL,
   status SMALLINT DEFAULT 1,
   role VARCHAR(20),
+  rsvp_status BOOLEAN DEFAULT FALSE,         -- New field (equivalent to your rsvpStatus boolean)
+  response VARCHAR(10),                      -- New field: 'yes', 'no', 'maybe'
   date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (event_id, user_id),
   FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,

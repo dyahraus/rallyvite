@@ -16,14 +16,6 @@ const attendanceEmoji = {
   no: Crying,
 };
 
-const mockParticipants = [
-  { emoji: '👍', name: 'Alice', avatarUrl: HolderPFP.src },
-  { emoji: '👍', name: 'Bob', avatarUrl: HolderPFP.src },
-  { emoji: '👍', name: 'Cathy', avatarUrl: HolderPFP.src },
-  { emoji: '😢', name: 'Dan', avatarUrl: HolderPFP.src },
-  { emoji: '🤔', name: 'Eve', avatarUrl: HolderPFP.src },
-];
-
 export default function OrganizerFinalize({ event, onClose }) {
   const [groupedBlocks, setGroupedBlocks] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
@@ -137,20 +129,28 @@ export default function OrganizerFinalize({ event, onClose }) {
               </div>
 
               <div className="flex justify-center gap-2 mt-3">
-                {mockParticipants.map((p, i) => (
-                  <div key={i} className="relative w-10 h-10">
-                    <Image
-                      src={p.avatarUrl}
-                      alt={p.name}
-                      className="rounded-full border-2 border-blue-500"
-                      width={40}
-                      height={40}
-                    />
-                    <span className="absolute -top-1 -right-1 text-sm">
-                      {p.emoji}
-                    </span>
-                  </div>
-                ))}
+                {block.participants?.map((participant, i) => {
+                  const emoji = attendanceEmoji[participant.response] || '';
+                  return (
+                    <div key={i} className="relative w-10 h-10">
+                      <Image
+                        src={HolderPFP} // TODO: Replace with actual user image when available
+                        alt={`User ${participant.userId}`}
+                        className="rounded-full border-2 border-blue-500"
+                        width={40}
+                        height={40}
+                      />
+                      <span className="absolute -top-1 -right-1 text-sm">
+                        <Image
+                          src={emoji}
+                          alt={participant.response}
+                          width={16}
+                          height={16}
+                        />
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );

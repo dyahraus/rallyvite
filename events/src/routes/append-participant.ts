@@ -33,7 +33,8 @@ router.post(
         const eventUser = await addUserToEvent(
           dbEvent.id,
           user.id,
-          'participant'
+          'participant',
+          rsvpResponse
         );
 
         await addUserEventTimes(user.id, event);
