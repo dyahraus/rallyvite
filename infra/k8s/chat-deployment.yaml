@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: chat-service
+  namespace: rallyvite-prod
 spec:
   replicas: 1
   selector:
@@ -14,7 +15,7 @@ spec:
     spec:
       containers:
         - name: chat-service
-          image: dyahraus/chat-service
+          image: gcr.io/lively-folder-450800-h3/chat-service
           env:
             - name: PG_USER
               value: 'postgres'

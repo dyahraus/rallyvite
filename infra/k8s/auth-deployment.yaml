@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: auth-service
+  namespace: rallyvite-prod
 spec:
   replicas: 1 # You can scale this up later
   selector:
@@ -14,7 +15,7 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: dyahraus/auth-service
+          image: gcr.io/lively-folder-450800-h3/auth-service
           ports:
             - containerPort: 3000
           env:
@@ -31,11 +32,11 @@ spec:
               value: '5432'
             - name: PG_DATABASE
               value: 'rallyvite_auth'
-            - name: SENDGRID_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: sg-api-key
-                  key: SENDGRID_API_KEY
+            # - name: SENDGRID_API_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: sg-api-key
+            #       key: SENDGRID_API_KEY
             - name: SENDER_EMAIL
               value: 'hey@rallyvite.com'
             - name: FRONTEND_URL

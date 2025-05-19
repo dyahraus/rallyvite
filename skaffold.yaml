@@ -1,5 +1,48 @@
 apiVersion: skaffold/v2alpha3
 kind: Config
+
+build:
+  local:
+    push: true # IMPORTANT: Push to GCR
+  artifacts:
+    - image: gcr.io/lively-folder-450800-h3/auth-service
+      context: auth
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/***/**.ts'
+            dest: .
+
+    - image: gcr.io/lively-folder-450800-h3/events-service
+      context: events
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/***/**.ts'
+            dest: .
+
+    - image: gcr.io/lively-folder-450800-h3/chat-service
+      context: chat
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/***/**.ts'
+            dest: .
+
+    - image: gcr.io/lively-folder-450800-h3/client-service
+      context: client
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/***/**.js'
+            dest: .
+          - src: 'src/***/**.css'
+            dest: .
+
 deploy:
   kubectl:
     manifests:
@@ -14,41 +57,4 @@ deploy:
       - ./infra/k8s/chat-postgres-service.yaml
       - ./infra/k8s/client-deployment.yaml
       - ./infra/k8s/ingress-srv.yaml
-build:
-  local:
-    push: false
-  artifacts:
-    - image: dyahraus/auth-service
-      context: auth
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: 'src/***/*.ts'
-            dest: .
-    - image: dyahraus/events-service
-      context: events
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: 'src/***/*.ts'
-            dest: .
-    - image: dyahraus/chat-service
-      context: chat
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: 'src/***/*.ts'
-            dest: .
-    - image: dyahraus/client-service
-      context: client
-      docker:
-        dockerfile: Dockerfile
-      sync:
-        manual:
-          - src: '***/*.js'
-            dest: .
-          - src: 'src/***/*.css' # Add this line to sync CSS files
-            dest: .
+      - ./infra/k8s/managed-cert.yaml

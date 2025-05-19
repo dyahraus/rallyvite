@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: chat-postgres
+  namespace: rallyvite-prod
 spec:
   serviceName: 'chat-postgres-service'
   replicas: 1
@@ -26,6 +27,8 @@ spec:
                   key: PG_PASSWORD # Make sure this secret contains the password
             - name: POSTGRES_DB
               value: 'rallyvite_chat' # The database to be created for events service
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           ports:
             - containerPort: 5432
           volumeMounts:

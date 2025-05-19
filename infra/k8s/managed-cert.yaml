@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: rallyvite-cert
+  namespace: rallyvite-prod
+spec:
+  domains:
+    - app.rallyvite.com

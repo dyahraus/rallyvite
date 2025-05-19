@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: auth-postgres
+  namespace: rallyvite-prod
 spec:
   serviceName: 'auth-postgres-service'
   replicas: 1
@@ -26,6 +27,8 @@ spec:
                   key: PG_PASSWORD # Make sure this secret contains the password
             - name: POSTGRES_DB
               value: 'rallyvite_auth' # The name of the database to be created
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           ports:
             - containerPort: 5432
           volumeMounts:
